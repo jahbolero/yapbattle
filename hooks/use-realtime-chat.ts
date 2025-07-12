@@ -85,43 +85,6 @@ export const useRealtimeChat = ({ roomName, username }: UseRealtimeChatProps) =>
       event: 'message',
       payload: message,
     })
-
-    // Try to get AI agent response
-    try {
-      const agentResponse = await fetch('/api/agents/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: content,
-          agentType: 'summary_agent' 
-        }),
-      })
-
-      const agentData = await agentResponse.json()
-
-      if (agentData.success && agentData.agent_response) {
-        const agentMessage: ChatMessage = {
-          id: `agent-${Date.now()}-${Math.random()}`,
-          content: agentData.agent_response,
-          createdAt: new Date().toISOString(),
-          user: {
-            id: 'ai-agent',
-            name: '🤖 AI Agent',
-          },
-          room: roomName,
-          agent_response: agentData.agent_response,
-        }
-
-        // Broadcast agent response
-        await channelRef.current.send({
-          type: 'broadcast',
-          event: 'message',
-          payload: agentMessage,
-        })
-      }
-    } catch (error) {
-      console.error('Error getting agent response:', error)
-    }
   }
 
   return {
