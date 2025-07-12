@@ -1,0 +1,535 @@
+
+> dev
+> next dev --turbopack
+
+   ▲ Next.js 15.3.5 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.6:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Compiled middleware in 271ms
+ ✓ Ready in 1806ms
+ ○ Compiling /debate/room/[roomId] ...
+ ✓ Compiled /debate/room/[roomId] in 2.2s
+(node:35069) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297685953-oanfsq 200 in 2982ms
+ ○ Compiling /_not-found/page ...
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 3128ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 2600ms
+ ✓ Compiled /_not-found/page in 4.6s
+(node:35120) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297685953-oanfsq 200 in 2581ms
+ GET /protected 200 in 5008ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 214ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 267ms
+ ○ Compiling /debate/create ...
+ ✓ Compiled /debate/create in 1263ms
+ GET /debate/create 200 in 1373ms
+ ○ Compiling /api/debate/create ...
+ ✓ Compiled /api/debate/create in 805ms
+ POST /api/debate/create 200 in 979ms
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 53ms
+ GET /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 146ms
+ GET /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 119ms
+(node:35137) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ○ Compiling /api/debate/messages/[roomId] ...
+ ✓ Compiled /api/debate/messages/[roomId] in 783ms
+(node:35142) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 1384ms
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 161ms
+(node:35145) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 135ms
+ GET /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 112ms
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 115ms
+(node:35153) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 127ms
+(node:35154) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 155ms
+(node:35155) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 148ms
+(node:35157) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 129ms
+(node:35169) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ POST /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 122ms
+(node:35170) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 145ms
+(node:35171) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ POST /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 133ms
+(node:35172) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 134ms
+(node:35174) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ○ Compiling /api/debate/winner ...
+ ✓ Compiled /api/debate/winner in 602ms
+Winner analysis requested for room: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8
+Room store keys: [
+  'debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297685953-oanfsq',
+  'debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8'
+]
+Message store keys: [ 'debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8' ]
+Looking for roomId: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8
+Room found: true
+Messages found: 2
+Analyzing debate with 2 messages
+Sending to io.net API: { promptLength: 5171, apiKey: 'Present' }
+io.net response status: 200
+io.net response data: {
+  "result": {
+    "summary": "Naruto vs Sasuke debate",
+    "key_points": [
+      "Naruto",
+      "vs",
+      "Sasuke",
+      "Debate",
+      "Winner"
+    ]
+  }
+}
+Using result.summary: Naruto vs Sasuke debate
+Raw analysis result: Naruto vs Sasuke debate
+Parsed results: {
+  winner: 'player1',
+  summary: 'Naruto vs Sasuke debate...',
+  reasoning: 'Naruto vs Sasuke debate...'
+}
+ POST /api/debate/winner 200 in 3838ms
+ ○ Compiling / ...
+ GET /api/io-test 404 in 1747ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 302ms
+ ✓ Compiled / in 6.5s
+ ○ Compiling /api/io-test ...
+ ✓ Compiled /api/io-test in 1613ms
+Test debate
+Sending to io.net: {
+  prompt: 'Analyze this debate and determine the winner:\n' +
+    '\n' +
+    'TOPIC: Should AI replace human teachers in schools?\n' +
+    '\n' +
+    'DEBATE:\n' +
+    'Sarah: AI teachers can provide personalized learning experiences for every student, adapting...',
+  apiKey: 'Present'
+}
+io.net response status: 200
+io.net response data: {
+  "result": {
+    "summary": "WINNER: Mike\nREASON: Mike highlighted the emotional and social aspects of human teachers that AI lacks.",
+    "key_points": [
+      "Emotional support",
+      "Social connection",
+      "Creativity and intuition"
+    ]
+  }
+}
+Using result.summary: WINNER: Mike
+REASON: Mike highlighted the emotional and social aspects of human teachers that AI lacks.
+ GET /api/io-test 200 in 5259ms
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 142ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 319ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 358ms
+ GET /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 310ms
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 113ms
+(node:35289) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752297963152-oqv6x8 200 in 116ms
+(node:35290) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /protected 200 in 368ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 279ms
+ GET /debate/create 200 in 64ms
+ POST /api/debate/create 200 in 206ms
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 42ms
+ GET /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 114ms
+ GET /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 111ms
+(node:35301) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 118ms
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 100ms
+(node:35307) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /debate/room/debate-b21451ee-1169-4407-http:/localhost:3000/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke8b0b-8432f26f4203-1752297963152-oqv6x8 404 in 143ms
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 231ms
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 108ms
+(node:35317) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 131ms
+(node:35318) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /debate/room/debate-b21451ee-1169-4407-http:/localhost:3000/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke8b0b-8432f26f4203-1752297963152-oqv6x8 404 in 107ms
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 294ms
+ GET /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 192ms
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 153ms
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 203ms
+(node:35331) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:35333) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 203ms
+(node:35334) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 239ms
+(node:35335) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ POST /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 126ms
+(node:35338) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 194ms
+(node:35339) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ POST /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 142ms
+(node:35342) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 110ms
+(node:35343) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Winner analysis requested for room: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Room store keys: []
+Message store keys: []
+Looking for roomId: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Room found: false
+Messages found: 0
+Room not found: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Available rooms: []
+ POST /api/debate/winner 404 in 134ms
+Winner analysis requested for room: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Room store keys: []
+Message store keys: []
+Looking for roomId: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Room found: false
+Messages found: 0
+Room not found: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Available rooms: []
+ POST /api/debate/winner 404 in 45ms
+Winner analysis requested for room: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Room store keys: []
+Message store keys: []
+Looking for roomId: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Room found: false
+Messages found: 0
+Room not found: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Available rooms: []
+ POST /api/debate/winner 404 in 40ms
+Winner analysis requested for room: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Room store keys: []
+Message store keys: []
+Looking for roomId: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Room found: false
+Messages found: 0
+Room not found: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Available rooms: []
+ POST /api/debate/winner 404 in 76ms
+Winner analysis requested for room: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Room store keys: []
+Message store keys: []
+Looking for roomId: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Room found: false
+Messages found: 0
+Room not found: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke
+Available rooms: []
+ POST /api/debate/winner 404 in 33ms
+ GET / 200 in 270ms
+Test debate
+Sending to io.net: {
+  prompt: 'Analyze this debate and determine the winner:\n' +
+    '\n' +
+    'TOPIC: Should AI replace human teachers in schools?\n' +
+    '\n' +
+    'DEBATE:\n' +
+    'Sarah: AI teachers can provide personalized learning experiences for every student, adapting...',
+  apiKey: 'Present'
+}
+io.net response status: 200
+io.net response data: {
+  "result": {
+    "summary": "WINNER: Mike. REASON: Mike highlighted the importance of emotional support and human qualities in teaching.",
+    "key_points": [
+      "AI lacks emotional support and empathy",
+      "Human teachers provide social connection",
+      "Teaching requires creativity and intuition"
+    ]
+  }
+}
+Using result.summary: WINNER: Mike. REASON: Mike highlighted the importance of emotional support and human qualities in teaching.
+ GET /api/io-test 200 in 3852ms
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 200ms
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 231ms
+(node:35404) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ✓ Compiled middleware in 18ms
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 441ms
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 433ms
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 139ms
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 134ms
+ ✓ Compiled middleware in 11ms
+ ✓ Compiled in 168ms
+ ○ Compiling /api/test-winner ...
+ ✓ Compiled /api/test-winner in 1637ms
+Creating test debate with Naruto vs Sasuke data...
+Test debate created successfully
+Room store keys after creation: [ 'test-naruto-sasuke-debate' ]
+Message store keys after creation: [ 'test-naruto-sasuke-debate' ]
+Testing winner analysis...
+Winner analysis requested for room: test-naruto-sasuke-debate
+Room store keys: [ 'test-naruto-sasuke-debate' ]
+Message store keys: [ 'test-naruto-sasuke-debate' ]
+Looking for roomId: test-naruto-sasuke-debate
+Room found: true
+Messages found: 2
+Analyzing debate with 2 messages
+Sending to io.net API: { promptLength: 4662, apiKey: 'Present' }
+io.net response status: 200
+io.net response data: {
+  "result": {
+    "summary": "Debaters argue over Naruto or Sasuke winning a fight.",
+    "key_points": [
+      "Naruto's endurance",
+      "Sasuke's dojutsu versatility",
+      "Intellectual superiority"
+    ]
+  }
+}
+Using result.summary: Debaters argue over Naruto or Sasuke winning a fight.
+Raw analysis result: Debaters argue over Naruto or Sasuke winning a fight.
+Fallback parsing needed. Analysis: Debaters argue over Naruto or Sasuke winning a fight.
+Parsed results: {
+  winner: 'player1',
+  summary: 'Analysis of the debate between Pro-Naruto Debater and Pro-Sasuke Debater....',
+  reasoning: 'Debaters argue over Naruto or Sasuke winning a fight....'
+}
+ POST /api/debate/winner 200 in 3809ms
+ POST /api/test-winner 200 in 5545ms
+Creating test debate with Naruto vs Sasuke data...
+Test debate created successfully
+Room store keys after creation: [ 'test-naruto-sasuke-debate' ]
+Message store keys after creation: [ 'test-naruto-sasuke-debate' ]
+Testing winner analysis...
+Winner analysis requested for room: test-naruto-sasuke-debate
+Room store keys: []
+Message store keys: []
+Looking for roomId: test-naruto-sasuke-debate
+Room found: false
+Messages found: 0
+Room not found: test-naruto-sasuke-debate
+Available rooms: []
+ POST /api/debate/winner 404 in 111ms
+ POST /api/test-winner 200 in 199ms
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 1847ms
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 1858ms
+(node:35556) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Creating test debate with Naruto vs Sasuke data...
+Test debate created successfully
+Room store keys after creation: [ 'test-naruto-sasuke-debate' ]
+Message store keys after creation: [ 'test-naruto-sasuke-debate' ]
+Testing winner analysis directly...
+Sending to io.net API: { promptLength: 4324, apiKey: 'Present' }
+io.net response data: {
+  "result": {
+    "summary": "Pro-Naruto Debater wins due to persuasive arguments on Naruto",
+    "key_points": [
+      "Naruto's endurance and adaptive chakra reserves",
+      "Naruto's unbreakable will and bonds",
+      "Pro-Sasuke Debater's overreliance on intellectual superiority"
+    ]
+  }
+}
+Raw analysis result: Pro-Naruto Debater wins due to persuasive arguments on Naruto
+ POST /api/test-winner 200 in 9060ms
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 981ms
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 2s
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 43797ms
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 10950ms
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 15068ms
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 17352ms
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 4801ms
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 5076ms
+(node:35711) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 1203ms
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 1254ms
+(node:35862) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 345ms
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke 200 in 137ms
+(node:35889) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET / 200 in 641ms
+Test debate
+Sending to io.net: {
+  prompt: 'Analyze this debate and determine the winner:\n' +
+    '\n' +
+    'TOPIC: Should AI replace human teachers in schools?\n' +
+    '\n' +
+    'DEBATE:\n' +
+    'Sarah: AI teachers can provide personalized learning experiences for every student, adapting...',
+  apiKey: 'Present'
+}
+io.net response status: 200
+io.net response data: {
+  "result": {
+    "summary": "WINNER: Mike, REASON: Mike effectively argued that human teachers provide essential emotional support and social connection.",
+    "key_points": [
+      "Human teachers provide emotional support and social connection",
+      "Teaching requires creativity and intuition",
+      "AI cannot replicate human qualities"
+    ]
+  }
+}
+Using result.summary: WINNER: Mike, REASON: Mike effectively argued that human teachers provide essential emotional support and social connection.
+ GET /api/io-test 200 in 3969ms
+ GET / 200 in 208ms
+ GET /protected 200 in 409ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 503ms
+ GET /debate/create 200 in 141ms
+ POST /api/debate/create 200 in 551ms
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 62ms
+ GET /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 187ms
+ GET /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 141ms
+(node:35983) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 271ms
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 113ms
+(node:35984) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 167ms
+ GET /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 129ms
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 127ms
+(node:35991) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 118ms
+(node:35992) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 198ms
+(node:35997) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 160ms
+(node:35998) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 146ms
+(node:36001) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ POST /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 200ms
+(node:36011) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 144ms
+(node:36012) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ POST /api/debate/messages/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 153ms
+(node:36016) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 143ms
+(node:36019) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Winner analysis requested for room: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz
+Room store keys: [
+  'debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298142914-2igpke',
+  'debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz'
+]
+Message store keys: [ 'debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz' ]
+Looking for roomId: debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz
+Room found: true
+Messages found: 2
+Analyzing debate with 2 messages
+Sending to io.net API: { promptLength: 4252, apiKey: 'Present' }
+io.net response status: 200
+io.net response data: {
+  "result": {
+    "summary": "Debate transcript analyzed to determine winner between jeremiah.valero and jake.valero4324 based on argument quality and persuasiveness.",
+    "key_points": [
+      "jeremiah.valero argued Naruto",
+      "jake.valero4324 argued Sasuke",
+      "Key disagreement: endurance vs intellectual superiority"
+    ]
+  }
+}
+Using result.summary: Debate transcript analyzed to determine winner between jeremiah.valero and jake.valero4324 based on argument quality and persuasiveness.
+Raw analysis result: Debate transcript analyzed to determine winner between jeremiah.valero and jake.valero4324 based on argument quality and persuasiveness.
+Fallback parsing needed. Analysis: Debate transcript analyzed to determine winner between jeremiah.valero and jake.valero4324 based on argument quality and persuasiveness.
+Parsed results: {
+  winner: 'player1',
+  summary: 'Debate transcript analyzed to determine winner between jeremiah. valero and jake....',
+  reasoning: 'valero and jake. valero4324 based on argument quality and persuasiveness....'
+}
+ POST /api/debate/winner 200 in 6110ms
+ ✓ Compiled middleware in 21ms
+ ✓ Compiled in 74ms
+Test debate
+Sending to io.net: {
+  prompt: 'Analyze this debate and determine the winner:\n' +
+    '\n' +
+    'TOPIC: Should AI replace human teachers in schools?\n' +
+    '\n' +
+    'DEBATE:\n' +
+    'Sarah: AI teachers can provide personalized learning experiences for every student, adapting...',
+  apiKey: 'Present'
+}
+io.net response status: 422
+io.net error response: {"detail":[{"type":"union_tag_invalid","loc":["body","args"],"msg":"Input tag 'analyze_debate' found using 'type' does not match any of the expected tags: 'solve_with_reasoning', 'summarize_text', 'sentiment', 'extract_categorized_entities', 'translate_text', 'classify', 'moderation', 'custom'","input":{"type":"analyze_debate"},"ctx":{"discriminator":"'type'","tag":"analyze_debate","expected_tags":"'solve_with_reasoning', 'summarize_text', 'sentiment', 'extract_categorized_entities', 'translate_text', 'classify', 'moderation', 'custom'"}}]}
+IO test error: Error: IO.NET API error: 422 - {"detail":[{"type":"union_tag_invalid","loc":["body","args"],"msg":"Input tag 'analyze_debate' found using 'type' does not match any of the expected tags: 'solve_with_reasoning', 'summarize_text', 'sentiment', 'extract_categorized_entities', 'translate_text', 'classify', 'moderation', 'custom'","input":{"type":"analyze_debate"},"ctx":{"discriminator":"'type'","tag":"analyze_debate","expected_tags":"'solve_with_reasoning', 'summarize_text', 'sentiment', 'extract_categorized_entities', 'translate_text', 'classify', 'moderation', 'custom'"}}]}
+    at GET (app/api/io-test/route.ts:58:12)
+  56 |       const errorText = await response.text();
+  57 |       console.log('io.net error response:', errorText);
+> 58 |       throw new Error(`IO.NET API error: ${response.status} - ${errorText}`);
+     |            ^
+  59 |     }
+  60 |
+  61 |     const data = await response.json();
+ GET /api/io-test 500 in 1213ms
+Test debate
+Sending to io.net: {
+  prompt: 'Analyze this debate and determine the winner:\n' +
+    '\n' +
+    'TOPIC: Should AI replace human teachers in schools?\n' +
+    '\n' +
+    'DEBATE:\n' +
+    'Sarah: AI teachers can provide personalized learning experiences for every student, adapting...',
+  apiKey: 'Present'
+}
+io.net response status: 422
+io.net error response: {"detail":[{"type":"missing","loc":["body","args","custom","name"],"msg":"Field required","input":{"type":"custom"}},{"type":"missing","loc":["body","args","custom","objective"],"msg":"Field required","input":{"type":"custom"}},{"type":"missing","loc":["body","args","custom","instructions"],"msg":"Field required","input":{"type":"custom"}}]}
+IO test error: Error: IO.NET API error: 422 - {"detail":[{"type":"missing","loc":["body","args","custom","name"],"msg":"Field required","input":{"type":"custom"}},{"type":"missing","loc":["body","args","custom","objective"],"msg":"Field required","input":{"type":"custom"}},{"type":"missing","loc":["body","args","custom","instructions"],"msg":"Field required","input":{"type":"custom"}}]}
+    at GET (app/api/io-test/route.ts:58:12)
+  56 |       const errorText = await response.text();
+  57 |       console.log('io.net error response:', errorText);
+> 58 |       throw new Error(`IO.NET API error: ${response.status} - ${errorText}`);
+     |            ^
+  59 |     }
+  60 |
+  61 |     const data = await response.json();
+ GET /api/io-test 500 in 1148ms
+Test debate
+Sending to io.net: {
+  prompt: 'Analyze this debate and determine the winner:\n' +
+    '\n' +
+    'TOPIC: Should AI replace human teachers in schools?\n' +
+    '\n' +
+    'DEBATE:\n' +
+    'Sarah: AI teachers can provide personalized learning experiences for every student, adapting...',
+  apiKey: 'Present'
+}
+io.net response status: 200
+io.net response data: {
+  "result": "WINNER: player2\nREASON: Mike highlights the importance of emotional support, empathy, and social connection in education, which are essential for students"
+}
+ GET /api/io-test 200 in 6481ms
+ ✓ Compiled middleware in 9ms
+ ✓ Compiled in 222ms
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 306ms
+ PUT /api/debate/room/debate-b21451ee-1169-4407-8b0b-8432f26f4203-1752298926717-doe0kz 200 in 361ms
+(node:36469) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)

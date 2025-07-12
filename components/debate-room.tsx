@@ -24,6 +24,8 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
   const [isReady, setIsReady] = useState(false);
   const [copied, setCopied] = useState(false);
   const [playerRole, setPlayerRole] = useState<'player1' | 'player2' | 'spectator'>(initialPlayerRole);
+  const [winner, setWinner] = useState<{winner: string, summary: string, reasoning: string, winnerName: string} | null>(null);
+  const [analyzingWinner, setAnalyzingWinner] = useState(false);
   const channelRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const supabase = createClient();
@@ -31,6 +33,12 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
   const roomUrl = typeof window !== 'undefined' ? `${window.location.origin}/debate/room/${room.id}` : '';
 
   useEffect(() => {
+    // Check for saved winner
+    const savedWinner = localStorage.getItem(`winner-${room.id}`);
+    if (savedWinner) {
+      setWinner(JSON.parse(savedWinner));
+    }
+    
     // Initialize room state and determine player role
     initializeRoom();
     
@@ -49,6 +57,8 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
         const updatedRoom = payload as DebateRoom;
         setRoom(updatedRoom);
         onRoomUpdate(updatedRoom);
+        
+        // Don't auto-trigger analysis anymore
       })
       .on('broadcast', { event: 'message' }, ({ payload }) => {
         const message = payload as DebateMessage;
@@ -60,6 +70,13 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       .on('broadcast', { event: 'timer-start' }, ({ payload }) => {
         const { duration } = payload;
         startTimer(duration);
+      })
+      .on('broadcast', { event: 'winner-analyzing' }, ({ payload }) => {
+        setAnalyzingWinner(payload.analyzing);
+      })
+      .on('broadcast', { event: 'winner-result' }, ({ payload }) => {
+        setWinner(payload);
+        localStorage.setItem(`winner-${room.id}`, JSON.stringify(payload));
       })
       .subscribe();
 
@@ -193,9 +210,11 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     };
 
     // Check if we've completed a full round (both players have spoken)
+    console.log('switchTurn - currentTurn:', room.currentTurn, 'currentRound:', room.currentRound, 'maxRounds:', room.rounds);
     if (room.currentTurn === 'player2') {
       // Player 2 just finished, so we completed a round
       const nextRound = room.currentRound + 1;
+      console.log('Player 2 finished, nextRound would be:', nextRound);
       
       if (nextRound > room.rounds) {
         // Debate is finished
@@ -347,6 +366,53 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     switchTurn();
   };
 
+  const analyzeWinner = async () => {
+    console.log('analyzeWinner called');
+    setAnalyzingWinner(true);
+    
+    // Broadcast that analysis is starting
+    console.log('Broadcasting analysis start');
+    channelRef.current?.send({
+      type: 'broadcast',
+      event: 'winner-analyzing',
+      payload: { analyzing: true },
+    });
+    
+    try {
+      const response = await fetch('/api/debate/winner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomId: room.id })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setWinner(data);
+        
+        // Save to localStorage
+        localStorage.setItem(`winner-${room.id}`, JSON.stringify(data));
+        
+        // Broadcast winner result to all players
+        channelRef.current?.send({
+          type: 'broadcast',
+          event: 'winner-result',
+          payload: data,
+        });
+      }
+    } catch (error) {
+      console.error('Error analyzing winner:', error);
+    } finally {
+      setAnalyzingWinner(false);
+      
+      // Broadcast that analysis is complete
+      channelRef.current?.send({
+        type: 'broadcast',
+        event: 'winner-analyzing',
+        payload: { analyzing: false },
+      });
+    }
+  };
+
   const copyRoomLink = async () => {
     await navigator.clipboard.writeText(roomUrl);
     setCopied(true);
@@ -469,10 +535,41 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
         <Card>
           <CardContent className="p-6 text-center">
             <h3 className="text-lg font-semibold mb-2">🎉 Debate Complete!</h3>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-4">
               The debate has finished after {room.rounds} rounds. 
               Thank you both for participating!
             </p>
+            
+            {!winner && !analyzingWinner && (
+              <Button 
+                onClick={analyzeWinner} 
+                className="mt-4"
+              >
+                Get AI Winner Analysis
+              </Button>
+            )}
+            
+            {analyzingWinner && (
+              <div className="mt-4 p-4 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">🤖 AI is analyzing the debate...</p>
+              </div>
+            )}
+            
+            {winner && (
+              <div className="mt-4 p-4 bg-muted rounded-lg">
+                <h4 className="font-semibold text-lg mb-3">🏆 Winner: {winner.winnerName}</h4>
+                
+                <div className="mb-3">
+                  <h5 className="font-medium text-sm mb-1">Summary:</h5>
+                  <p className="text-sm text-muted-foreground">{winner.summary}</p>
+                </div>
+                
+                <div>
+                  <h5 className="font-medium text-sm mb-1">Reasoning:</h5>
+                  <p className="text-sm text-muted-foreground">{winner.reasoning}</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

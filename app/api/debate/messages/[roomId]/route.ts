@@ -4,11 +4,11 @@ import { messageStore } from '@/lib/room-store';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { roomId: string } }
+  { params }: { params: Promise<{ roomId: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const roomId = params.roomId;
+    const { roomId } = await params;
 
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -35,11 +35,11 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { roomId: string } }
+  { params }: { params: Promise<{ roomId: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const roomId = params.roomId;
+    const { roomId } = await params;
     const message = await request.json();
 
     // Get current user
