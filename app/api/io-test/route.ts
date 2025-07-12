@@ -73,7 +73,7 @@ REASON: [Explain in 2-3 sentences why this executive's argument was more compell
     console.log('io.net response data:', JSON.stringify(data, null, 2));
     
     // Handle chat completions response format
-    let analysis, winner, reason;
+    let analysis, winner;
     
     if (data.choices && data.choices[0] && data.choices[0].message) {
       analysis = data.choices[0].message.content;
@@ -95,7 +95,7 @@ REASON: [Explain in 2-3 sentences why this executive's argument was more compell
     const winnerMatch = analysis.match(/WINNER:\s*(player[12]|[A-Za-z]+)/i);
     const reasonMatch = analysis.match(/REASON:\s*(.+)/i);
     
-    let winnerRaw = winnerMatch?.[1] || 'player1';
+    const winnerRaw = winnerMatch?.[1] || 'player1';
     
     // Map name-based winners to player numbers
     if (winnerRaw.toLowerCase().includes('marcus') || winnerRaw.toLowerCase().includes('chen') || winnerRaw.toLowerCase().includes('ceo')) {
@@ -108,7 +108,7 @@ REASON: [Explain in 2-3 sentences why this executive's argument was more compell
       winner = 'player1'; // default
     }
     
-    reason = reasonMatch?.[1] || analysis || 'Analysis completed';
+    const reason = reasonMatch?.[1] || analysis || 'Analysis completed';
 
     return NextResponse.json({
       success: true,
