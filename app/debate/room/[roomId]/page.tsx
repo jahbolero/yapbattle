@@ -5,12 +5,13 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { DebateRoomComponent } from '@/components/debate-room';
 import type { DebateRoom } from '@/types/debate';
+import type { User } from '@supabase/supabase-js';
 
 export default function DebateRoomPage() {
   const params = useParams();
   const roomId = params.roomId as string;
   const [room, setRoom] = useState<DebateRoom | null>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [playerRole, setPlayerRole] = useState<'player1' | 'player2' | 'spectator'>('spectator');
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -39,7 +40,7 @@ export default function DebateRoomPage() {
           // If room was updated (new player joined), we should broadcast this change
           if (data.roomUpdated) {
             // We'll handle this in the DebateRoomComponent
-            setRoom(prev => ({ ...data.room, _shouldBroadcast: true }));
+            setRoom({ ...data.room, _shouldBroadcast: true });
           }
         } else {
           console.error('Room not found');

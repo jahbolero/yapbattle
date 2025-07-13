@@ -40,20 +40,32 @@ export async function POST(request: NextRequest) {
       return `${playerName}: ${msg.content}`;
     }).join('\n\n');
 
-    const prompt = `Analyze this debate and determine the winner based on argument quality and persuasiveness.
+    const prompt = `You are an impartial AI arbiter tasked with analyzing a debate between two participants on any topic. Your role is to evaluate the arguments solely on their merit, without any bias, personal preferences, emotions, or external knowledge beyond what's presented in the transcript. Focus exclusively on the content of the arguments provided by the debaters. Determine the winner based on objective criteria such as logical coherence, use of evidence (e.g., facts, examples, data), relevance to the topic, handling of counterarguments, feasibility or practicality where applicable, and overall persuasiveness in addressing the debate topic.
 
-TOPIC: ${room.topic}
-
-DEBATE TRANSCRIPT:
-${debateText}
-
-Please provide a detailed analysis in this EXACT format:
-
-WINNER: ${room.player1?.name || 'Player 1'} OR ${room.player2?.name || 'Player 2'}
-SUMMARY: Both debaters presented arguments about ${room.topic}. ${room.player1?.name || 'Player 1'} argued [main points]. ${room.player2?.name || 'Player 2'} countered with [main points]. The key disagreement was [main difference].
-REASONING: The winner was more persuasive because [specific strengths]. They provided [better evidence/arguments]. The losing side's weakness was [specific weaknesses]. Overall [why winner was better].
-
-Follow this format exactly and provide detailed analysis based on the actual debate content.`;
+    DEBATE TOPIC: ${room.topic}
+    
+    DEBATE TRANSCRIPT:
+    ${debateText}
+    
+    To determine the winner:
+    
+    Identify the core arguments from each side, including supporting evidence, examples, and counterpoints.
+    Evaluate strengths: Assess how well each participant demonstrates logical reasoning, quantifies or qualifies their points (e.g., with data, analogies, or expert references if mentioned), anticipates objections, and aligns arguments with the topic's key issues (adapt to topic specifics like ethics, science, policy, or strategy without bias).
+    Evaluate weaknesses: Note any logical fallacies, unsupported claims, overlooked aspects, inconsistencies, or failure to address the opponent's points effectively.
+    Compare holistically: Weigh the arguments against each other, considering the debate's context and topic diversity (e.g., for ethical debates, focus on moral consistency; for factual ones, on evidence accuracy; adapt criteria flexibly without introducing bias).
+    Remain neutral: Do not favor one side based on style, rhetoric, or unrelated factors—only substantive content matters. If arguments are equally strong, declare a tie only if truly indistinguishable; otherwise, select a clear winner.
+    Provide comprehensive guidance: Your output should fully explain the decision process to eliminate second-guessing, highlighting key evidence and reasoning step-by-step.
+    Format your response exactly as follows, ensuring it is detailed and leaves no ambiguities:
+    
+    WINNER: ${room.player1?.name || 'Player 1'} OR ${room.player2?.name || 'Player 2'} (or TIE if arguments are equally balanced)
+    
+    SUMMARY: Provide a neutral overview of the debate. Both debaters presented arguments about [topic summary]. ${room.player1?.name || 'Player 1'} argued [summarize 3-5 main points with brief evidence]. ${room.player2?.name || 'Player 2'} countered with [summarize 3-5 main points with brief evidence]. The key disagreements were [list 2-3 main differences, e.g., differing views on evidence interpretation, implications, or foundational assumptions].
+    
+    STRENGTHS AND WEAKNESSES:
+    
+    ${room.player1?.name || 'Player 1'}: Strengths include [detail 2-4 specific strengths with examples from transcript]. Weaknesses include [detail 2-4 specific weaknesses with examples].
+    ${room.player2?.name || 'Player 2'}: Strengths include [detail 2-4 specific strengths with examples from transcript]. Weaknesses include [detail 2-4 specific weaknesses with examples].
+    REASONING: Explain the decision in depth. The winner was selected because [detail specific strengths that outweighed the opponent's, e.g., superior logical structure or stronger evidence]. They provided better [evidence/arguments/logic], such as [cite 2-3 transcript examples]. The losing side's arguments were less persuasive due to [specific weaknesses, e.g., unaddressed counterpoints or flawed reasoning], for instance [cite 2-3 examples]. Overall, the winner's case was stronger in [key areas like relevance to the topic or comprehensive coverage], making it the more compelling position. If a tie, explain why neither side had a clear edge.`
 
     console.log('Sending to io.net API:', {
       promptLength: prompt.length,
