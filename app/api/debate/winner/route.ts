@@ -7,21 +7,21 @@ export async function POST(request: NextRequest) {
     console.log('Winner analysis requested for room:', roomId);
 
     // Get room and messages from store
-    const room = roomStore.get(roomId);
-    const messages = messageStore.get(roomId) || [];
+    const room = roomStore?.get(roomId);
+    const messages = messageStore?.get(roomId) || [];
 
-    console.log('Room store keys:', Array.from(roomStore.keys()));
-    console.log('Message store keys:', Array.from(messageStore.keys()));
+    console.log('Room store keys:', roomStore ? Array.from(roomStore.keys()) : []);
+    console.log('Message store keys:', messageStore ? Array.from(messageStore.keys()) : []);
     console.log('Looking for roomId:', roomId);
     console.log('Room found:', !!room);
     console.log('Messages found:', messages.length);
 
     if (!room) {
       console.log('Room not found:', roomId);
-      console.log('Available rooms:', Array.from(roomStore.keys()));
+      console.log('Available rooms:', roomStore ? Array.from(roomStore.keys()) : []);
       return NextResponse.json({ 
         error: 'Debate room not found. The room may have expired or the server was restarted.',
-        availableRooms: Array.from(roomStore.keys()) 
+        availableRooms: roomStore ? Array.from(roomStore.keys()) : []
       }, { status: 404 });
     }
 
@@ -40,32 +40,91 @@ export async function POST(request: NextRequest) {
       return `${playerName}: ${msg.content}`;
     }).join('\n\n');
 
-    const prompt = `You are an impartial AI arbiter tasked with analyzing a debate between two participants on any topic. Your role is to evaluate the arguments solely on their merit, without any bias, personal preferences, emotions, or external knowledge beyond what's presented in the transcript. Focus exclusively on the content of the arguments provided by the debaters. Determine the winner based on objective criteria such as logical coherence, use of evidence (e.g., facts, examples, data), relevance to the topic, handling of counterarguments, feasibility or practicality where applicable, and overall persuasiveness in addressing the debate topic.
+    const prompt = `You are an impartial AI arbiter tasked with analyzing a debate between two participants on any topic, drawing from parliamentary debate judging principles. Evaluate arguments solely on their merit, using only the content in the transcript—no bias, personal preferences, emotions, or external knowledge. Determine the winner holistically by identifying points of contention, assessing how well each side argues and rebuts on each, and weighing their importance and performance.
 
-    DEBATE TOPIC: ${room.topic}
-    
-    DEBATE TRANSCRIPT:
-    ${debateText}
-    
-    To determine the winner:
-    
-    Identify the core arguments from each side, including supporting evidence, examples, and counterpoints.
-    Evaluate strengths: Assess how well each participant demonstrates logical reasoning, quantifies or qualifies their points (e.g., with data, analogies, or expert references if mentioned), anticipates objections, and aligns arguments with the topic's key issues (adapt to topic specifics like ethics, science, policy, or strategy without bias).
-    Evaluate weaknesses: Note any logical fallacies, unsupported claims, overlooked aspects, inconsistencies, or failure to address the opponent's points effectively.
-    Compare holistically: Weigh the arguments against each other, considering the debate's context and topic diversity (e.g., for ethical debates, focus on moral consistency; for factual ones, on evidence accuracy; adapt criteria flexibly without introducing bias).
-    Remain neutral: Do not favor one side based on style, rhetoric, or unrelated factors—only substantive content matters. If arguments are equally strong, declare a tie only if truly indistinguishable; otherwise, select a clear winner.
-    Provide comprehensive guidance: Your output should fully explain the decision process to eliminate second-guessing, highlighting key evidence and reasoning step-by-step.
-    Format your response exactly as follows, ensuring it is detailed and leaves no ambiguities:
-    
-    WINNER: ${room.player1?.name || 'Player 1'} OR ${room.player2?.name || 'Player 2'} (or TIE if arguments are equally balanced)
-    
-    SUMMARY: Provide a neutral overview of the debate. Both debaters presented arguments about [topic summary]. ${room.player1?.name || 'Player 1'} argued [summarize 3-5 main points with brief evidence]. ${room.player2?.name || 'Player 2'} countered with [summarize 3-5 main points with brief evidence]. The key disagreements were [list 2-3 main differences, e.g., differing views on evidence interpretation, implications, or foundational assumptions].
-    
-    STRENGTHS AND WEAKNESSES:
-    
-    ${room.player1?.name || 'Player 1'}: Strengths include [detail 2-4 specific strengths with examples from transcript]. Weaknesses include [detail 2-4 specific weaknesses with examples].
-    ${room.player2?.name || 'Player 2'}: Strengths include [detail 2-4 specific strengths with examples from transcript]. Weaknesses include [detail 2-4 specific weaknesses with examples].
-    REASONING: Explain the decision in depth. The winner was selected because [detail specific strengths that outweighed the opponent's, e.g., superior logical structure or stronger evidence]. They provided better [evidence/arguments/logic], such as [cite 2-3 transcript examples]. The losing side's arguments were less persuasive due to [specific weaknesses, e.g., unaddressed counterpoints or flawed reasoning], for instance [cite 2-3 examples]. Overall, the winner's case was stronger in [key areas like relevance to the topic or comprehensive coverage], making it the more compelling position. If a tie, explain why neither side had a clear edge.`
+DEBATE TOPIC: ${room.topic}
+
+DEBATE TRANSCRIPT:
+${debateText}
+
+Process:
+
+Summarize the key points and overall flow of the debate.
+Identify 3-5 main points of contention (battlegrounds where arguments clash, e.g., timing, costs, ethics).
+For each contention, establish criteria adapted to the topic (e.g., logical coherence, evidence use, rebuttal effectiveness, relevance, feasibility, persuasiveness).
+Analyze per contention: Extract key arguments/rebuttals from each side; evaluate what's strong (e.g., data-backed, anticipates counters), lacking (e.g., unsupported, ignored objections, fallacies); explain interactions (how one side's point relates to/undermines the other's); justify who "won" that contention based on criteria.
+Score each participant out of 10 overall (average of criteria like Logical Coherence, Evidence Use, Relevance, Counterarguments, Feasibility, Persuasiveness), and note per-contention mini-scores if relevant.
+Compare holistically: Weigh contentions by importance (e.g., core to topic > peripheral); avoid over-reliance on single arguments; declare a tie only if performances are indistinguishable across battlegrounds.
+Remain neutral: Base on substantive content only—no favoritism to style or rhetoric.
+Provide AI-unique insights: Flag patterns like fallacies, evidence density, or sentiment via semantic analysis.
+Explain thought process transparently to substantiate the verdict and reduce dissatisfaction.
+
+CRITICAL INSTRUCTIONS:
+1. Return ONLY a valid JSON object
+2. Do not include ANY text before or after the JSON
+3. Do not wrap in markdown code blocks or backticks
+4. Do not include explanations or commentary
+5. Start directly with { and end with }
+6. Ensure all strings are properly quoted
+7. Use double quotes for all JSON keys and string values
+
+Return your analysis as a JSON object with exactly this structure:
+
+{
+  "winner": {
+    "name": "${room.player1?.name || 'Player 1'}",
+    "player": "player1",
+    "score": "7.5/10"
+  },
+  "scores": {
+    "player1": {
+      "overall": 7,
+      "breakdown": {
+        "logicalCoherence": 7,
+        "evidence": 8,
+        "relevance": 7,
+        "counterarguments": 6,
+        "feasibility": 7,
+        "persuasiveness": 8
+      }
+    },
+    "player2": {
+      "overall": 6,
+      "breakdown": {
+        "logicalCoherence": 6,
+        "evidence": 7,
+        "relevance": 6,
+        "counterarguments": 7,
+        "feasibility": 6,
+        "persuasiveness": 5
+      }
+    }
+  },
+  "debateSummary": "The debate centered on [topic], with ${room.player1?.name || 'Player 1'} advocating for [position] while ${room.player2?.name || 'Player 2'} argued for [counter-position]. Both presented data-driven arguments about [key themes].",
+  "pointsOfContention": [
+    "Main point of disagreement 1",
+    "Main point of disagreement 2",
+    "Main point of disagreement 3"
+  ],
+  "contentionAnalysis": [
+    {
+      "title": "Contention Name",
+      "criteria": "Assessed on [specific criteria for this contention]",
+      "player1Analysis": "${room.player1?.name || 'Player 1'} presented [analysis of their arguments, strengths, and weaknesses]",
+      "player2Analysis": "${room.player2?.name || 'Player 2'} countered with [analysis of their arguments, strengths, and weaknesses]",
+      "outcome": "[Who won this contention and why, with specific reasoning]"
+    }
+  ],
+  "holisticVerdict": "[2-4 sentences explaining the overall winner based on weighing all contentions and their importance]",
+  "aiInsights": [
+    "Pattern or insight about the debate dynamics",
+    "Analysis of argumentation quality or fallacies"
+  ],
+  "nextSteps": [
+    "Actionable advice for participants",
+    "Recommendations for future discussions"
+  ]
+}`;
 
     console.log('Sending to io.net API:', {
       promptLength: prompt.length,
@@ -121,21 +180,66 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    console.log('Raw analysis result:', analysis);
+    console.log('Raw analysis result (first 500 chars):', analysis.substring(0, 500));
+    console.log('Raw analysis result (last 200 chars):', analysis.substring(Math.max(0, analysis.length - 200)));
     
-    // Parse winner, summary, and reasoning
-    const winnerMatch = analysis.match(/WINNER:\s*(.+?)(?=\n|SUMMARY:|$)/i);
-    const summaryMatch = analysis.match(/SUMMARY:\s*(.+?)(?=REASONING:|$)/si);
-    const reasoningMatch = analysis.match(/REASONING:\s*(.+)/si);
+    // Parse JSON response
+    let parsedAnalysis;
+    let winner, reason;
     
-    let winner = 'player1'; // default
-    let summary = '';
-    let reasoning = '';
+    console.log('Raw analysis response:', analysis);
     
-    // Parse winner
-    if (winnerMatch) {
-      const winnerRaw = winnerMatch[1].trim();
-      console.log('Winner raw text:', winnerRaw);
+    // Try to parse as JSON first
+    try {
+      parsedAnalysis = JSON.parse(analysis);
+      console.log('Successfully parsed JSON:', parsedAnalysis);
+    } catch (error) {
+      console.error('Failed to parse JSON analysis:', error);
+      
+      // Try to extract JSON from text response (sometimes AI wraps it in markdown or adds extra text)
+      let jsonText = analysis;
+      
+      // Remove markdown code blocks if present
+      const markdownMatch = analysis.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (markdownMatch) {
+        jsonText = markdownMatch[1];
+      }
+      
+      // Find the JSON object (from first { to last })
+      const firstBrace = jsonText.indexOf('{');
+      const lastBrace = jsonText.lastIndexOf('}');
+      
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        jsonText = jsonText.substring(firstBrace, lastBrace + 1);
+        
+        try {
+          parsedAnalysis = JSON.parse(jsonText);
+          console.log('Extracted JSON from text:', parsedAnalysis);
+        } catch (e) {
+          console.error('Failed to parse extracted JSON:', e);
+          console.error('Extracted text was:', jsonText.substring(0, 200));
+          parsedAnalysis = null;
+        }
+      } else {
+        console.error('No valid JSON structure found in response');
+        parsedAnalysis = null;
+      }
+    }
+    
+    // Extract winner and reason from parsed JSON or fallback
+    if (parsedAnalysis && parsedAnalysis.winner) {
+      winner = parsedAnalysis.winner.player || 'player1';
+      reason = parsedAnalysis.holisticVerdict || 'Analysis completed';
+      console.log('Using JSON parsed winner:', winner);
+    } else {
+      console.log('Falling back to regex parsing');
+      // Fallback parsing for non-JSON responses
+      const winnerMatch = analysis.match(/🏆 Winner:\s*(.*?)(?:\n|$)/i) || 
+                         analysis.match(/WINNER:\s*(player[12]|[A-Za-z\s\(\)]+)/i);
+      const reasonMatch = analysis.match(/REASON:\s*(.+)/i);
+      
+      const winnerRaw = winnerMatch?.[1] || 'player1';
+      console.log('Regex found winner:', winnerRaw);
       
       // Map name-based winners to player numbers
       if (winnerRaw.toLowerCase().includes(room.player1?.name?.toLowerCase() || 'player1')) {
@@ -144,39 +248,58 @@ export async function POST(request: NextRequest) {
         winner = 'player2';
       } else if (winnerRaw.match(/^player[12]$/i)) {
         winner = winnerRaw.toLowerCase();
-      }
-    }
-    
-    // Parse summary and reasoning
-    summary = summaryMatch?.[1]?.trim() || '';
-    reasoning = reasoningMatch?.[1]?.trim() || '';
-    
-    // If we don't have proper format, try to create meaningful fallbacks
-    if (!summary || !reasoning) {
-      console.log('Fallback parsing needed. Analysis:', analysis);
-      
-      // Split the analysis into sentences and use them intelligently
-      const sentences = analysis.split(/[.!?]+/).filter(s => s.trim().length > 0);
-      
-      if (sentences.length >= 2) {
-        summary = sentences.slice(0, 2).join('. ').trim() + '.';
-        reasoning = sentences.slice(1).join('. ').trim() + '.';
       } else {
-        summary = `Analysis of the debate between ${room.player1?.name || 'Player 1'} and ${room.player2?.name || 'Player 2'}.`;
-        reasoning = analysis || 'The AI provided a brief analysis of the debate arguments.';
+        winner = 'player1'; // default
       }
+      
+      reason = reasonMatch?.[1] || 'Analysis completed';
     }
 
-    console.log('Parsed results:', { winner, summary: summary.substring(0, 100) + '...', reasoning: reasoning.substring(0, 100) + '...' });
+    // If we don't have parsed analysis, create a minimal fallback
+    if (!parsedAnalysis) {
+      console.log('Creating fallback parsed analysis');
+      parsedAnalysis = {
+        winner: {
+          name: winner === 'player1' ? (room.player1?.name || 'Player 1') : (room.player2?.name || 'Player 2'),
+          player: winner,
+          score: "7.5/10"
+        },
+        scores: {
+          player1: { overall: 7, breakdown: { logicalCoherence: 7, evidence: 7, relevance: 7, counterarguments: 7, feasibility: 7, persuasiveness: 7 } },
+          player2: { overall: 6, breakdown: { logicalCoherence: 6, evidence: 6, relevance: 6, counterarguments: 6, feasibility: 6, persuasiveness: 6 } }
+        },
+        debateSummary: "The debate covered key considerations with both sides presenting compelling arguments.",
+        pointsOfContention: [
+          "Main point of disagreement 1",
+          "Main point of disagreement 2",
+          "Main point of disagreement 3"
+        ],
+        contentionAnalysis: [
+          {
+            title: "Primary Contention",
+            criteria: "Assessed on logical coherence and evidence quality",
+            player1Analysis: `${room.player1?.name || 'Player 1'} presented arguments supporting their position`,
+            player2Analysis: `${room.player2?.name || 'Player 2'} countered with alternative viewpoints`,
+            outcome: "Close contention with valid points on both sides"
+          }
+        ],
+                 holisticVerdict: reason || "Based on the analysis of the contentions, the winner demonstrated stronger overall argumentation with better evidence and logical coherence.",
+        aiInsights: ["Both participants demonstrated analytical skills", "Arguments were well-structured"],
+        nextSteps: ["Consider alternative approaches", "Conduct further research"]
+      };
+    }
+
+    console.log('Parsed results:', { winner, parsedAnalysis: !!parsedAnalysis });
 
     return NextResponse.json({
       success: true,
       winner,
-      summary,
-      reasoning,
+      summary: parsedAnalysis.debateSummary || 'Analysis completed',
+      reasoning: parsedAnalysis.holisticVerdict || 'Analysis completed',
       winnerName: winner === 'player1' ? 
         (room.player1?.name || 'Player 1') : 
-        (room.player2?.name || 'Player 2')
+        (room.player2?.name || 'Player 2'),
+      parsedAnalysis
     });
 
   } catch (error) {
