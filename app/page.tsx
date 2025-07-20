@@ -68,7 +68,7 @@ export default function LandingPage() {
       <div className="w-full p-6">
         <div className="bg-accent text-sm p-3 px-5 rounded-md text-foreground flex gap-3 items-center">
           <InfoIcon size="16" strokeWidth={2} />
-          Welcome to YapFight - Create or join debate rooms
+          Welcome to YapBattle - Create or join debate rooms
         </div>
       </div>
 
@@ -77,7 +77,7 @@ export default function LandingPage() {
         <div className="w-full max-w-4xl">
           {/* Hero Section */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">YapFight</h1>
+            <h1 className="text-4xl font-bold mb-4">YapBattle</h1>
             <p className="text-xl text-muted-foreground mb-8">
               Engage in structured debates with AI-powered analysis
             </p>
