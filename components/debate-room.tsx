@@ -346,6 +346,11 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
   };
 
   const switchTurn = () => {
+    // Don't switch turns if debate is already finished
+    if (room.status === 'finished') {
+      return;
+    }
+    
     const nextTurn: 'player1' | 'player2' = room.currentTurn === 'player1' ? 'player2' : 'player1';
     let updatedRoom: DebateRoom = {
       ...room,
@@ -435,10 +440,8 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       // Keep current status if not both players joined yet
       updatedRoom.status = room.status;
     }
-    if(room.status !== 'finished'){
       setRoom(updatedRoom);
       broadcastRoomUpdate(updatedRoom, true); // Immediate broadcast for ready state changes
-    }
   };
 
   const startDebate = () => {
