@@ -106,29 +106,29 @@ Return your analysis as a JSON object with exactly this structure:
 "winner": {
 "name": "${room.player1}",
 "player": "player1",
-"score": "7.5/10"
+"score": "X/10"
 },
 "scores": {
 "player1": {
-"overall": 7,
+"overall": X,
 "breakdown": {
-"logicalCoherence": 7,
-"evidence": 8,
-"relevance": 7,
-"counterarguments": 6,
-"feasibility": 7,
-"persuasiveness": 8
+"logicalCoherence": X,
+"evidence": X,
+"relevance": X,
+"counterarguments": X,
+"feasibility": X,
+"persuasiveness": X
 }
 },
 "player2": {
-"overall": 6,
+"overall": X,
 "breakdown": {
-"logicalCoherence": 6,
-"evidence": 7,
-"relevance": 6,
-"counterarguments": 7,
-"feasibility": 6,
-"persuasiveness": 5
+"logicalCoherence": X,
+"evidence": X,
+"relevance": X,
+"counterarguments": X,
+"feasibility": X,
+"persuasiveness": X
 }
 }
 },
@@ -147,8 +147,8 @@ Return your analysis as a JSON object with exactly this structure:
 "player2Analysis": "${room.player2} countered with [detailed analysis with verbatim cites, strengths/weaknesses dissection, nuances; 150-250 words for depth]",
 "outcome": "[Who won this contention and why, with granular reasoning citing exact arguments, interactions, and criteria application; include mini-scores like Player1: 8/10, Player2: 6/10; 100-150 words]",
 "miniScores": {
-"player1": 8,
-"player2": 6
+"player1": X,
+"player2": X
 }
 }
 ],
@@ -310,7 +310,7 @@ Return your analysis as a JSON object with exactly this structure:
       winner: {
         name: winner === 'player1' ? room.player1 : room.player2,
         player: winner,
-        score: "7.5/10"
+        score: "X/10"
       },
       scores: {
         player1: { overall: 7, breakdown: { logicalCoherence: 7, evidence: 7, relevance: 7, counterarguments: 7, feasibility: 7, persuasiveness: 7 } },

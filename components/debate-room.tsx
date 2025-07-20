@@ -77,6 +77,8 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     player2Name?: string;
   }>({});
   const [hasDebateStarted, setHasDebateStarted] = useState(false);
+  const [showTurnNotification, setShowTurnNotification] = useState(false);
+  const turnNotificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -223,6 +225,38 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       });
     }
   }, [room]);
+
+  // Check if it's the user's turn and show notification
+  useEffect(() => {
+    if (room.status === 'active' && room.currentTurn === playerRole) {
+      // Clear any existing timeout
+      if (turnNotificationTimeoutRef.current) {
+        clearTimeout(turnNotificationTimeoutRef.current);
+      }
+      
+      // Show turn notification
+      setShowTurnNotification(true);
+      
+      // Auto-hide after 5 seconds
+      const timeout = setTimeout(() => {
+        setShowTurnNotification(false);
+      }, 5000);
+      
+      turnNotificationTimeoutRef.current = timeout;
+      
+      // Cleanup timeout on unmount
+      return () => {
+        if (timeout) clearTimeout(timeout);
+      };
+    } else {
+      // Hide notification if it's not user's turn
+      setShowTurnNotification(false);
+      if (turnNotificationTimeoutRef.current) {
+        clearTimeout(turnNotificationTimeoutRef.current);
+        turnNotificationTimeoutRef.current = null;
+      }
+    }
+  }, [room.currentTurn, room.status, playerRole]);
 
   const initializeRoom = () => {
     // Determine if user is player1, player2, or spectator based on name
@@ -545,8 +579,8 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-3">{room.title}</h1>
-            <p className="text-gray-700 text-lg">{room.topic}</p>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">{room.title}</h1>
+            <p className="text-gray-700 text-xl font-medium leading-relaxed">{room.topic}</p>
           </div>
           <div className="flex items-center gap-4">
             <Badge variant={
@@ -560,21 +594,6 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               {copied ? 'Copied!' : 'Share'}
             </Button>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-3 gap-6 mt-8 text-center">
-          <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-6 border border-purple-300/50">
-            <div className="text-3xl font-bold text-purple-700">{room.currentRound}/{room.rounds}</div>
-            <div className="text-sm text-purple-600 mt-2 font-medium">Round</div>
-          </div>
-          <div className="bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-6 border border-indigo-300/50">
-            <div className="text-3xl font-bold text-indigo-700">{formatTime(timeLeft)}</div>
-            <div className="text-sm text-indigo-600 mt-2 font-medium">Time Left</div>
-          </div>
-          <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-6 border border-blue-300/50">
-            <div className="text-3xl font-bold text-blue-700">{room.minutesPerTurn}m</div>
-            <div className="text-sm text-blue-600 mt-2 font-medium">Per Turn</div>
           </div>
         </div>
       </div>
@@ -637,10 +656,17 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       </div>
 
       {/* Controls */}
-      {playerRole !== 'spectator' && room.status === 'waiting' && !hasDebateStarted && (
+      {playerRole !== 'spectator' && room.status === 'waiting' && !hasDebateStarted && room.player1 && room.player2 && (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50 text-center">
           <h3 className="text-xl font-semibold mb-6 text-gray-900">Ready Up</h3>
-          <Button onClick={handleReady} variant={isReady ? 'default' : 'outline'} size="lg" className={isReady ? 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl h-14 text-lg font-medium shadow-lg transform transition-all duration-200 hover:scale-105' : 'border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl h-14 text-lg font-medium'}>
+          <Button 
+            onClick={handleReady} 
+            size="lg" 
+            className={isReady 
+              ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl h-14 text-lg font-medium shadow-lg transform transition-all duration-200 hover:scale-105' 
+              : 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl h-14 text-lg font-medium shadow-lg transform transition-all duration-200 hover:scale-105'
+            }
+          >
             {isReady ? 'Ready!' : 'Ready Up'}
           </Button>
         </div>
@@ -657,38 +683,35 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
         </div>
       )}
 
-      {/* Analyze Debate Button */}
-      {!winner && (room.status === 'active' || room.status === 'finished' || messages.length > 0) && (
+      {/* Analyze Debate Button - Only show when debate is finished */}
+      {!winner && room.status === 'finished' && (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50 text-center">
           <h3 className="text-xl font-semibold mb-3 text-gray-900">🤖 AI Analysis</h3>
           <p className="text-gray-700 mb-6">
-            {room.status === 'finished' 
-              ? 'The debate has finished! Get AI analysis of the discussion.'
-              : 'Get AI analysis of the current debate progress.'
-            }
+            The debate has finished! Get AI analysis of the discussion.
           </p>
-                      <Button 
-              onClick={analyzeWinner} 
-              disabled={analyzingWinner}
-              className="mb-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl h-12 text-base font-medium shadow-lg transform transition-all duration-200 hover:scale-105"
-            >
-              {analyzingWinner ? 'Analyzing...' : 'Analyze Debate'}
-            </Button>
-            
-            {analyzingWinner && (
-              <div className="mt-6 p-6 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl border border-purple-300/50">
-                <p className="text-sm text-gray-700 mb-4">🤖 AI is analyzing the debate...</p>
-                <div className="w-full bg-white/50 rounded-full h-3 overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-purple-500 to-indigo-600 transition-all duration-300 ease-out"
-                    style={{ width: `${analysisProgress}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-600 mt-2 text-center">
-                  {Math.round(analysisProgress)}% complete
-                </p>
+          <Button 
+            onClick={analyzeWinner} 
+            disabled={analyzingWinner}
+            className="mb-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl h-12 text-base font-medium shadow-lg transform transition-all duration-200 hover:scale-105"
+          >
+            {analyzingWinner ? 'Analyzing...' : 'Analyze Debate'}
+          </Button>
+          
+          {analyzingWinner && (
+            <div className="mt-6 p-6 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl border border-purple-300/50">
+              <p className="text-sm text-gray-700 mb-4">🤖 AI is analyzing the debate...</p>
+              <div className="w-full bg-white/50 rounded-full h-3 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-purple-500 to-indigo-600 transition-all duration-300 ease-out"
+                  style={{ width: `${analysisProgress}%` }}
+                ></div>
               </div>
-            )}
+              <p className="text-xs text-gray-600 mt-2 text-center">
+                {Math.round(analysisProgress)}% complete
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -894,61 +917,116 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
         </div>
       )}
 
-      {/* Messages */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-purple-200/50">
-        <h3 className="text-xl font-semibold mb-6 text-gray-900">Debate Messages</h3>
-        <div className="space-y-4 max-h-96 overflow-y-auto">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.user.name === currentUser.name ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              <div
-                className={`max-w-xs lg:max-w-md px-6 py-4 rounded-2xl ${
-                  message.user.name === currentUser.name
-                    ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg'
-                    : 'bg-white/80 backdrop-blur-sm text-gray-900 border border-purple-200/50 shadow-lg'
-                }`}
-              >
-                <div className="text-xs font-medium mb-2">
-                  {message.user.name} (Round {message.round})
-                </div>
-                <p className="text-sm leading-relaxed">{message.content}</p>
+      {/* Debate Area with Timer Cards */}
+      <div className="space-y-6">
+        {/* Timer Cards - Show debate info before and during debate */}
+        {!hasDebateStarted || room.status === 'active' ? (
+          <div className="flex justify-center gap-4">
+            <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-4 border border-purple-300/50 shadow-lg">
+              <div className="text-2xl font-bold text-purple-700 text-center">
+                {!hasDebateStarted ? '1' : room.currentRound}/{room.rounds}
+              </div>
+              <div className="text-xs text-purple-600 mt-1 font-medium text-center">Round</div>
+            </div>
+            <div className="bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-4 border border-indigo-300/50 shadow-lg">
+              <div className="text-2xl font-bold text-indigo-700 text-center">
+                {!hasDebateStarted ? '--:--' : formatTime(timeLeft)}
+              </div>
+              <div className="text-xs text-indigo-600 mt-1 font-medium text-center">
+                {!hasDebateStarted ? 'Time Left' : 'Time Left'}
               </div>
             </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Message Input */}
-        {canSendMessage() && (
-          <form onSubmit={sendMessage} className="flex gap-4 mt-8">
-            <Input
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Your argument..."
-              className="flex-1 rounded-xl border-purple-300 !bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
-            />
-            <Button type="submit" disabled={!newMessage.trim()} className="rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-lg transform transition-all duration-200 hover:scale-105">
-              <Send className="h-5 w-5" />
-            </Button>
-          </form>
-        )}
-
-        {/* Skip Turn Button */}
-        {canSkipTurn() && !canSendMessage() && (
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-700 mb-4">
-              Time is up! You can skip your turn or wait for the system to auto-skip.
-            </p>
-            <Button variant="outline" onClick={skipTurn} className="rounded-xl border-purple-300 text-purple-700 hover:bg-purple-50 font-medium">
-              Skip Turn
-            </Button>
+            <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-4 border border-blue-300/50 shadow-lg">
+              <div className="text-2xl font-bold text-blue-700 text-center">{room.minutesPerTurn}m</div>
+              <div className="text-xs text-blue-600 mt-1 font-medium text-center">Per Turn</div>
+            </div>
           </div>
-        )}
+        ) : null}
+
+        {/* Messages - Bigger debate box */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-purple-200/50">
+          <h3 className="text-xl font-semibold mb-6 text-gray-900">Debate Messages</h3>
+          <div className="space-y-4 max-h-[600px] overflow-y-auto">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${
+                  message.user.name === currentUser.name ? 'justify-end' : 'justify-start'
+                }`}
+              >
+                <div
+                  className={`max-w-xs lg:max-w-md px-6 py-4 rounded-2xl ${
+                    message.user.name === currentUser.name
+                      ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg'
+                      : 'bg-white/80 backdrop-blur-sm text-gray-900 border border-purple-200/50 shadow-lg'
+                  }`}
+                >
+                  <div className="text-xs font-medium mb-2">
+                    {message.user.name} (Round {message.round})
+                  </div>
+                  <p className="text-sm leading-relaxed">{message.content}</p>
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Message Input */}
+          {canSendMessage() && (
+            <form onSubmit={sendMessage} className="flex gap-4 mt-8">
+              <Input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Your argument..."
+                className="flex-1 rounded-xl border-purple-300 !bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
+              />
+              <Button type="submit" disabled={!newMessage.trim()} className="rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-lg transform transition-all duration-200 hover:scale-105">
+                <Send className="h-5 w-5" />
+              </Button>
+            </form>
+          )}
+
+          {/* Skip Turn Button */}
+          {canSkipTurn() && !canSendMessage() && (
+            <div className="mt-8 text-center">
+              <p className="text-sm text-gray-700 mb-4">
+                Time is up! You can skip your turn or wait for the system to auto-skip.
+              </p>
+              <Button variant="outline" onClick={skipTurn} className="rounded-xl border-purple-300 text-purple-700 hover:bg-purple-50 font-medium">
+                Skip Turn
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Turn Notification Popup */}
+      {showTurnNotification && (
+        <div className="fixed bottom-4 left-4 z-50 animate-in slide-in-from-bottom duration-300">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-purple-200/50 max-w-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">🎤 Your Turn!</h3>
+                <p className="text-sm text-gray-600 mb-2">
+                  Round {room.currentRound} • {formatTime(timeLeft)} remaining
+                </p>
+                <Button 
+                  onClick={() => setShowTurnNotification(false)}
+                  size="sm"
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg px-3 py-1 text-xs font-medium"
+                >
+                  Got it
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

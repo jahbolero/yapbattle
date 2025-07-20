@@ -215,12 +215,6 @@ export default function IoTestPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -253,134 +247,19 @@ export default function IoTestPage() {
     }
   }, [simulationState]);
 
-  // Create a room with the current status for display
-  const displayRoom: DebateRoom = {
-    ...testRoom,
-    status: simulationState === 'running' || simulationState === 'analyzing' || simulationState === 'complete' ? 'active' : 'waiting'
-  };
-
-  // Get current messages to display
-  const currentMessages = debateMessages.slice(0, currentMessageIndex);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 p-6">
-      {/* Simulation Controls */}
-      <div className="fixed top-6 right-6 z-50">
-        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-purple-200/50 w-80">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Play className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">AI Debate Simulation</h3>
-              <p className="text-sm text-gray-600">Test the debate analysis system</p>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            {simulationState === 'idle' && (
-              <Button onClick={runSimulation} className="w-full rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-lg transform transition-all duration-200 hover:scale-105">
-                <Play className="h-4 w-4 mr-2" />
-                Run Simulation
-              </Button>
-            )}
-
-            {simulationState === 'running' && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
-                  <span className="text-sm font-medium text-gray-700">Simulating debate...</span>
-                </div>
-                <div className="text-xs text-gray-600">
-                  Message {currentMessageIndex}/{debateMessages.length}
-                </div>
-              </div>
-            )}
-
-            {simulationState === 'analyzing' && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
-                  <span className="text-sm font-medium text-gray-700">AI analyzing debate...</span>
-                </div>
-                <div className="text-xs text-gray-600 mb-3">
-                  🤖 Processing arguments and determining winner
-                </div>
-                <div className="w-full bg-white/50 rounded-full h-2 overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-300 ease-out"
-                    style={{ width: `${analysisProgress}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-600 text-center">
-                  {Math.round(analysisProgress)}% complete
-                </p>
-              </div>
-            )}
-
-            {simulationState === 'complete' && (
-              <div className="space-y-4">
-                {error && (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm">
-                    <p className="font-semibold text-red-700">{error.error}</p>
-                    <p className="text-red-600 mt-1">{error.details}</p>
-                  </div>
-                )}
-
-                {result && (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-gray-700">Winner:</span>
-                      <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-1 rounded-full">
-                        {(() => {
-                          const winnerMatch = result.rawResponse.match(/🏆 Winner: (.*?)(?:\n|$)/);
-                          return winnerMatch?.[1] || result.winnerName;
-                        })()}
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <span className="text-xs font-medium text-gray-700">Score:</span>
-                      <div className="text-xs text-gray-600">
-                        {(() => {
-                          const scoreMatch = result.rawResponse.match(/Score: (.*?)(?:\n|$)/);
-                          return scoreMatch?.[1] || 'Analysis completed';
-                        })()}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <span className="text-xs font-medium text-gray-700">Full Analysis:</span>
-                      <div className="p-3 bg-gray-50 rounded-xl max-h-32 overflow-y-auto border border-gray-200">
-                        <pre className="whitespace-pre-wrap text-xs text-gray-700">{result.rawResponse}</pre>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <Button onClick={resetSimulation} variant="outline" size="sm" className="w-full rounded-xl border-purple-300 text-purple-700 hover:bg-purple-50 font-medium">
-                  Reset Simulation
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Room Header */}
+      {/* Page Header */}
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-3">{displayRoom.title}</h1>
-            <p className="text-gray-700 text-lg">{displayRoom.topic}</p>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">AI Debate Simulation</h1>
+            <p className="text-gray-700 text-xl font-medium leading-relaxed">Test the AI analysis system with a sample debate</p>
           </div>
           <div className="flex items-center gap-4">
-            <Badge variant={
-              displayRoom.status === 'active' ? 'default' : 
-              displayRoom.status === 'finished' ? 'destructive' : 
-              'secondary'
-            } className="px-4 py-2 rounded-xl font-medium">
-              {displayRoom.status === 'finished' ? 'Debate Finished' : displayRoom.status}
+            <Badge variant="secondary" className="px-4 py-2 rounded-xl font-medium">
+              Test Mode
             </Badge>
             <Button variant="outline" size="sm" onClick={copyRoomLink} className="rounded-xl border-purple-300 text-purple-700 hover:bg-purple-50 font-medium">
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -388,46 +267,24 @@ export default function IoTestPage() {
             </Button>
           </div>
         </div>
-        
-        <div className="grid grid-cols-3 gap-6 mt-8 text-center">
-          <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-6 border border-purple-300/50">
-            <div className="text-3xl font-bold text-purple-700">{displayRoom.currentRound}/{displayRoom.rounds}</div>
-            <div className="text-sm text-purple-600 mt-2 font-medium">Round</div>
-          </div>
-          <div className="bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-6 border border-indigo-300/50">
-            <div className="text-3xl font-bold text-indigo-700">{formatTime(displayRoom.minutesPerTurn * 60)}</div>
-            <div className="text-sm text-indigo-600 mt-2 font-medium">Time Left</div>
-          </div>
-          <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-6 border border-blue-300/50">
-            <div className="text-3xl font-bold text-blue-700">{displayRoom.minutesPerTurn}m</div>
-            <div className="text-sm text-blue-600 mt-2 font-medium">Per Turn</div>
-          </div>
-        </div>
       </div>
 
-      {/* Players */}
+      {/* Test Room Info */}
       <div className="grid grid-cols-2 gap-8 mb-8">
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-purple-200/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-xl">
-                  {(displayRoom.player1?.name || 'P1').charAt(0)}
-                </span>
+                <span className="text-white font-bold text-xl">M</span>
               </div>
               <div>
-                <div className="font-semibold text-gray-900 text-lg">
-                  {displayRoom.player1?.name || 'Waiting...'}
-                </div>
+                <div className="font-semibold text-gray-900 text-lg">Marcus Chen (CEO)</div>
                 <div className="text-sm text-gray-700">Player 1</div>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {displayRoom.currentTurn === 'player1' && displayRoom.status === 'active' && (
-                <Badge variant="default" className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl">Your Turn</Badge>
-              )}
-              {displayRoom.player1?.isReady && (
-                <Badge variant="outline" className="border-purple-300 text-purple-700 px-4 py-2 rounded-xl">Ready</Badge>
+              {simulationState === 'running' && currentMessageIndex % 2 === 0 && (
+                <Badge variant="default" className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl">Speaking</Badge>
               )}
             </div>
           </div>
@@ -437,60 +294,122 @@ export default function IoTestPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-xl">
-                  {(displayRoom.player2?.name || 'P2').charAt(0)}
-                </span>
+                <span className="text-white font-bold text-xl">D</span>
               </div>
               <div>
-                <div className="font-semibold text-gray-900 text-lg">
-                  {displayRoom.player2?.name || 'Waiting...'}
-                </div>
+                <div className="font-semibold text-gray-900 text-lg">Diana Rodriguez (CFO)</div>
                 <div className="text-sm text-gray-700">Player 2</div>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {displayRoom.currentTurn === 'player2' && displayRoom.status === 'active' && (
-                <Badge variant="default" className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl">Your Turn</Badge>
-              )}
-              {displayRoom.player2?.isReady && (
-                <Badge variant="outline" className="border-purple-300 text-purple-700 px-4 py-2 rounded-xl">Ready</Badge>
+              {simulationState === 'running' && currentMessageIndex % 2 === 1 && (
+                <Badge variant="default" className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl">Speaking</Badge>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Debate Finished Message */}
-      {simulationState === 'complete' && (
+      {/* Controls */}
+      {simulationState === 'idle' && (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50 text-center">
-          <h3 className="text-xl font-semibold mb-3 text-gray-900">🎉 Debate Complete!</h3>
+          <h3 className="text-xl font-semibold mb-6 text-gray-900">Start Simulation</h3>
+          <Button 
+            onClick={runSimulation} 
+            size="lg" 
+            className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl h-14 text-lg font-medium shadow-lg transform transition-all duration-200 hover:scale-105"
+          >
+            <Play className="h-5 w-5 mr-3" />
+            Start Debate Simulation
+          </Button>
+        </div>
+      )}
+
+      {/* Simulation Status */}
+      {simulationState === 'running' && (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50 text-center">
+          <h3 className="text-xl font-semibold mb-6 text-gray-900">Debate in Progress</h3>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 justify-center">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+              <span className="text-sm font-medium text-gray-700">Simulating debate messages...</span>
+            </div>
+            <div className="text-xs text-gray-600">
+              Message {currentMessageIndex} of {debateMessages.length}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Analysis Status */}
+      {simulationState === 'analyzing' && (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50 text-center">
+          <h3 className="text-xl font-semibold mb-6 text-gray-900">AI Analysis</h3>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 justify-center">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
+              <span className="text-sm font-medium text-gray-700">AI analyzing debate...</span>
+            </div>
+            <div className="text-xs text-gray-600 mb-3">
+              🤖 Processing arguments and determining winner
+            </div>
+            <div className="w-full bg-white/50 rounded-full h-2 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-300 ease-out"
+                style={{ width: `${analysisProgress}%` }}
+              ></div>
+            </div>
+            <p className="text-xs text-gray-600 text-center">
+              {Math.round(analysisProgress)}% complete
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Results */}
+      {result && (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50 text-center">
+          <h3 className="text-xl font-semibold mb-3 text-gray-900">🏆 Analysis Complete!</h3>
           <p className="text-gray-700 mb-6">
-            The debate has finished after {displayRoom.rounds} rounds. 
-            Thank you both for participating!
+            AI analysis has been completed for this debate simulation.
           </p>
+          <Button 
+            onClick={resetSimulation} 
+            variant="outline"
+            size="sm"
+            className="mb-4 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl font-medium"
+          >
+            Run Another Test
+          </Button>
           
-          {result && (
+          {result.parsedAnalysis && (
             <div className="mt-8 max-w-6xl mx-auto space-y-6">
               {/* Winner Card */}
-              <div className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-2xl p-8 shadow-xl">
+              <div className={`rounded-2xl p-8 shadow-xl ${
+                result.parsedAnalysis.winner?.player === 'tie'
+                  ? 'bg-gradient-to-r from-yellow-500 to-orange-600 text-white' 
+                  : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white'
+              }`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs font-medium text-purple-100 uppercase tracking-wide mb-2">Winner</div>
+                    <div className="text-xs font-medium text-white/80 uppercase tracking-wide mb-2">
+                      {result.parsedAnalysis.winner?.player === 'tie' ? 'Result' : 'Winner'}
+                    </div>
                     <h2 className="text-2xl font-semibold">
-                      {result.parsedAnalysis?.winner?.name || result.winnerName}
+                      {result.parsedAnalysis.winner?.player === 'tie' ? '🏆 Tie' : (result.parsedAnalysis.winner?.name || result.winnerName)}
                     </h2>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs font-medium text-purple-100 uppercase tracking-wide mb-2">Score</div>
+                    <div className="text-xs font-medium text-white/80 uppercase tracking-wide mb-2">Score</div>
                     <div className="text-xl font-semibold">
-                      {result.parsedAnalysis?.winner?.score || 'Analysis completed'}
+                      {result.parsedAnalysis.winner?.score || 'Analysis completed'}
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Debate Summary */}
-              {result.parsedAnalysis?.debateSummary && (
+              {result.parsedAnalysis.debateSummary && (
                 <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
                   <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-4">Debate Summary</div>
                   <p className="text-gray-900 leading-relaxed">{result.parsedAnalysis.debateSummary}</p>
@@ -498,7 +417,7 @@ export default function IoTestPage() {
               )}
 
               {/* Points of Contention */}
-              {result.parsedAnalysis?.pointsOfContention && result.parsedAnalysis.pointsOfContention.length > 0 && (
+              {result.parsedAnalysis.pointsOfContention && result.parsedAnalysis.pointsOfContention.length > 0 && (
                 <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
                   <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-6">Points of Contention</div>
                   <div className="space-y-4">
@@ -513,7 +432,7 @@ export default function IoTestPage() {
               )}
 
               {/* Contention Analysis */}
-              {result.parsedAnalysis?.contentionAnalysis && result.parsedAnalysis.contentionAnalysis.length > 0 && (
+              {result.parsedAnalysis.contentionAnalysis && result.parsedAnalysis.contentionAnalysis.length > 0 && (
                 <div className="space-y-6">
                   <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
                     <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">Contention Analysis</div>
@@ -553,7 +472,7 @@ export default function IoTestPage() {
               )}
 
               {/* Holistic Verdict */}
-              {result.parsedAnalysis?.holisticVerdict && (
+              {result.parsedAnalysis.holisticVerdict && (
                 <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
                   <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-4">Holistic Verdict</div>
                   <p className="text-gray-900 leading-relaxed">{result.parsedAnalysis.holisticVerdict}</p>
@@ -562,7 +481,7 @@ export default function IoTestPage() {
 
               {/* AI Insights & Recommendations */}
               <div className="grid md:grid-cols-2 gap-6">
-                {result.parsedAnalysis?.aiInsights && result.parsedAnalysis.aiInsights.length > 0 && (
+                {result.parsedAnalysis.aiInsights && result.parsedAnalysis.aiInsights.length > 0 && (
                   <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
                     <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-6">AI Insights</div>
                     <div className="space-y-4">
@@ -576,7 +495,7 @@ export default function IoTestPage() {
                   </div>
                 )}
 
-                {result.parsedAnalysis?.nextSteps && result.parsedAnalysis.nextSteps.length > 0 && (
+                {result.parsedAnalysis.nextSteps && result.parsedAnalysis.nextSteps.length > 0 && (
                   <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
                     <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-6">Next Steps</div>
                     <div className="space-y-4">
@@ -590,37 +509,89 @@ export default function IoTestPage() {
                   </div>
                 )}
               </div>
+
+              {/* Fallback for old format */}
+              {!result.parsedAnalysis && (
+                <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                  <h4 className="font-semibold text-xl mb-6 text-gray-900">🏆 Winner: {result.winnerName}</h4>
+                  
+                  <div className="mb-6">
+                    <h5 className="font-medium text-base mb-3 text-gray-900">Summary:</h5>
+                    <p className="text-sm text-gray-700 leading-relaxed">{result.reason}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* Messages */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-purple-200/50">
-        <h3 className="text-xl font-semibold mb-6 text-gray-900">Debate Messages</h3>
-        <div className="space-y-4 max-h-96 overflow-y-auto">
-          {currentMessages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.turn === 'player2' ? 'justify-end' : 'justify-start'
-              }`}
-            >
+      {/* Error Display */}
+      {error && (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-red-200/50 text-center">
+          <h3 className="text-xl font-semibold mb-3 text-red-900">❌ Error</h3>
+          <p className="text-red-700 mb-4">{error.error}</p>
+          <p className="text-sm text-red-600">{error.details}</p>
+          <Button 
+            onClick={resetSimulation} 
+            className="mt-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl px-6 py-2 font-medium"
+          >
+            Try Again
+          </Button>
+        </div>
+      )}
+
+      {/* Debate Area with Timer Cards */}
+      <div className="space-y-6">
+        {/* Timer Cards - Show debate info during simulation */}
+        {simulationState === 'running' && (
+          <div className="flex justify-center gap-4">
+            <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-4 border border-purple-300/50 shadow-lg">
+              <div className="text-2xl font-bold text-purple-700 text-center">
+                {Math.floor(currentMessageIndex / 2) + 1}/3
+              </div>
+              <div className="text-xs text-purple-600 mt-1 font-medium text-center">Round</div>
+            </div>
+            <div className="bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-4 border border-indigo-300/50 shadow-lg">
+              <div className="text-2xl font-bold text-indigo-700 text-center">
+                {simulationState === 'running' ? '02:30' : '--:--'}
+              </div>
+              <div className="text-xs text-indigo-600 mt-1 font-medium text-center">Time Left</div>
+            </div>
+            <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-4 border border-blue-300/50 shadow-lg">
+              <div className="text-2xl font-bold text-blue-700 text-center">5m</div>
+              <div className="text-xs text-blue-600 mt-1 font-medium text-center">Per Turn</div>
+            </div>
+          </div>
+        )}
+
+        {/* Messages - Bigger debate box */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-purple-200/50">
+          <h3 className="text-xl font-semibold mb-6 text-gray-900">Debate Messages</h3>
+          <div className="space-y-4 max-h-[600px] overflow-y-auto">
+            {debateMessages.slice(0, currentMessageIndex).map((message) => (
               <div
-                className={`max-w-xs lg:max-w-md px-6 py-4 rounded-2xl ${
-                  message.turn === 'player2'
-                    ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg'
-                    : 'bg-white/80 backdrop-blur-sm text-gray-900 border border-purple-200/50 shadow-lg'
+                key={message.id}
+                className={`flex ${
+                  message.user.name === 'Marcus Chen (CEO)' ? 'justify-end' : 'justify-start'
                 }`}
               >
-                <div className="text-xs font-medium mb-2">
-                  {message.user.name} (Round {message.round})
+                <div
+                  className={`max-w-xs lg:max-w-md px-6 py-4 rounded-2xl ${
+                    message.user.name === 'Marcus Chen (CEO)'
+                      ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg'
+                      : 'bg-white/80 backdrop-blur-sm text-gray-900 border border-purple-200/50 shadow-lg'
+                  }`}
+                >
+                  <div className="text-xs font-medium mb-2">
+                    {message.user.name} (Round {message.round})
+                  </div>
+                  <p className="text-sm leading-relaxed">{message.content}</p>
                 </div>
-                <p className="text-sm leading-relaxed">{message.content}</p>
               </div>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
         </div>
       </div>
     </div>

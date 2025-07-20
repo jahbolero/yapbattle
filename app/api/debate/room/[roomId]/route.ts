@@ -10,7 +10,17 @@ export async function POST(
     const { playerName } = await request.json();
 
     if (!playerName) {
-      return NextResponse.json({ error: 'Player name required' }, { status: 400 });
+      return NextResponse.json({ 
+        success: false,
+        error: 'Player name is required to join the room' 
+      }, { status: 400 });
+    }
+
+    if (!roomId) {
+      return NextResponse.json({ 
+        success: false,
+        error: 'Room ID is required' 
+      }, { status: 400 });
     }
 
     const db = new DebateDatabase();
@@ -18,7 +28,10 @@ export async function POST(
     // Get room from database
     const dbRoom = await db.getRoom(roomId);
     if (!dbRoom) {
-      return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+      return NextResponse.json({ 
+        success: false,
+        error: 'Room not found. The room may have expired or been deleted.' 
+      }, { status: 404 });
     }
 
     // Get existing participants
@@ -64,7 +77,10 @@ export async function POST(
   } catch (error) {
     console.error('Error getting room:', error);
     return NextResponse.json(
-      { error: 'Failed to get room' },
+      { 
+        success: false,
+        error: 'Failed to connect to room. Please try again.' 
+      },
       { status: 500 }
     );
   }
