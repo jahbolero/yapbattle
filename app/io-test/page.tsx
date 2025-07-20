@@ -264,7 +264,7 @@ export default function IoTestPage() {
             <Button variant="outline" size="sm" onClick={copyRoomLink} className="rounded-xl border-purple-300 text-purple-700 hover:bg-purple-50 font-medium">
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               {copied ? 'Copied!' : 'Share'}
-            </Button>
+        </Button>
           </div>
         </div>
       </div>
@@ -404,7 +404,7 @@ export default function IoTestPage() {
                     <div className="text-xl font-semibold">
                       {result.parsedAnalysis.winner?.score || 'Analysis completed'}
                     </div>
-                  </div>
+                </div>
                 </div>
               </div>
 
@@ -413,7 +413,7 @@ export default function IoTestPage() {
                 <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
                   <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-4">Debate Summary</div>
                   <p className="text-gray-900 leading-relaxed">{result.parsedAnalysis.debateSummary}</p>
-                </div>
+              </div>
               )}
 
               {/* Points of Contention */}

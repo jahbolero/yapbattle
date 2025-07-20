@@ -6,6 +6,7 @@ import { InfoIcon, MessageSquare, Plus, Users, ArrowRight, Clock, Calendar, Trop
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import Logo from '@/components/logo';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -136,7 +137,8 @@ export default function LandingPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-purple-200/50 px-6 py-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <Logo width={96} height={96} />
           <div className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-4 rounded-2xl flex gap-3 items-center shadow-lg">
             <InfoIcon size="18" strokeWidth={2} />
             <span className="text-sm font-medium">Welcome to YapBattle - Create or join debate rooms</span>
@@ -149,10 +151,9 @@ export default function LandingPage() {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <div className="mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
-              <MessageSquare className="h-10 w-10 text-white" />
+            <div className="flex justify-center mb-6">
+              <Logo width={480} height={480} className="text-center" />
             </div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">YapBattle</h1>
             <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
               Engage in structured debates with AI-powered analysis and real-time feedback
             </p>

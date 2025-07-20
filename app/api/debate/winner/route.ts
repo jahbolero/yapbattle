@@ -44,11 +44,11 @@ export async function POST(request: NextRequest) {
 
     const prompt = `You are an impartial AI arbiter tasked with analyzing a debate between two participants on any topic, drawing from parliamentary debate judging principles. Evaluate arguments solely on their merit, using only the content in the transcript—no bias, personal preferences, emotions, or external knowledge. Determine the winner holistically by identifying points of contention, assessing how well each side argues and rebuts on each, and weighing their importance and performance. Delve deeply into nuances, such as subtle assumptions, implicit biases in reasoning, logical fallacies, evidence depth, rebuttal specificity, and how arguments evolve across rounds.
 
-DEBATE TOPIC: ${room.topic}
-
-DEBATE TRANSCRIPT:
-${debateText}
-
+    DEBATE TOPIC: ${room.topic}
+    
+    DEBATE TRANSCRIPT:
+    ${debateText}
+    
 Process:
 
 Summarize the key points and overall flow of the debate in detail, tracing how arguments build, clash, and resolve (or fail to) across rounds.
@@ -152,7 +152,7 @@ Return your analysis as a JSON object with exactly this structure:
         'Authorization': `Bearer ${process.env.IONET_API_KEY}`
       },
       body: JSON.stringify({
-        model: "meta-llama/Llama-3.3-70B-Instruct",
+        model: "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
         messages: [
           {
             role: "user",

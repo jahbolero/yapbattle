@@ -178,10 +178,10 @@ Return your analysis as a JSON object with exactly this structure:
       'Authorization': `Bearer ${process.env.IONET_API_KEY}`
     },
     body: JSON.stringify({
-      model: "meta-llama/Llama-3.3-70B-Instruct",
+      model: "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
       messages: [
         {
-          role: "user",
+          role: "system",
           content: prompt
         }
       ],
