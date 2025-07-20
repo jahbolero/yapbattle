@@ -155,6 +155,11 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
           });
         }
         
+        // Also maintain hasDebateStarted if debate has already started but status changed
+        if (hasDebateStarted && (updatedRoom.status === 'active' || updatedRoom.status === 'finished' || updatedRoom.startedAt)) {
+          setHasDebateStarted(true);
+        }
+        
         // Don't auto-trigger analysis anymore
       })
       .on('broadcast', { event: 'message' }, ({ payload }) => {
