@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,7 +56,7 @@ interface ParsedAnalysis {
 
 interface DebateRoomProps {
   room: DebateRoom;
-  currentUser: any;
+  currentUser: { id: string; name: string };
   playerRole: 'player1' | 'player2' | 'spectator';
   onRoomUpdate: (room: DebateRoom) => void;
 }
@@ -76,7 +77,7 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     player2Name?: string;
   }>({});
   const [hasDebateStarted, setHasDebateStarted] = useState(false);
-  const channelRef = useRef<any>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const supabase = createClient();
 
@@ -207,10 +208,10 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
 
   // Handle broadcasting when a new player joins
   useEffect(() => {
-    if ((room as any)._shouldBroadcast && channelRef.current) {
+    if ((room as DebateRoom & { _shouldBroadcast?: boolean })._shouldBroadcast && channelRef.current) {
       // Remove the broadcast flag and broadcast the update
       const cleanRoom = { ...room };
-      delete (cleanRoom as any)._shouldBroadcast;
+      delete (cleanRoom as DebateRoom & { _shouldBroadcast?: boolean })._shouldBroadcast;
       setRoom(cleanRoom);
       
       // Broadcast the room update to notify other players
@@ -382,6 +383,9 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     e.preventDefault();
     if (!newMessage.trim() || !canSendMessage()) return;
 
+    // Only player1 and player2 can send messages
+    if (playerRole !== 'player1' && playerRole !== 'player2') return;
+
     const message: DebateMessage = {
       id: `${Date.now()}-${Math.random()}`,
       content: newMessage.trim(),
@@ -392,7 +396,7 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       },
       room: room.id,
       round: room.currentRound,
-      turn: playerRole,
+      turn: playerRole as 'player1' | 'player2',
     };
 
     setNewMessage('');

@@ -1,36 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { roomStore, messageStore } from '@/lib/room-store';
+import { DebateDatabase } from '@/lib/database';
 
 export async function POST(request: NextRequest) {
   try {
     const { roomId } = await request.json();
     console.log('Winner analysis requested for room:', roomId);
 
-    // Get room and messages from store
-    const room = roomStore?.get(roomId);
-    const messages = messageStore?.get(roomId) || [];
+    const db = new DebateDatabase();
 
-    console.log('Room store keys:', roomStore ? Array.from(roomStore.keys()) : []);
-    console.log('Message store keys:', messageStore ? Array.from(messageStore.keys()) : []);
-    console.log('Looking for roomId:', roomId);
-    console.log('Room found:', !!room);
-    console.log('Messages found:', messages.length);
+    // Get room and messages from database
+    const dbRoom = await db.getRoom(roomId);
+    const dbMessages = await db.getMessages(roomId);
+    const participants = await db.getParticipants(roomId);
 
-    if (!room) {
+    console.log('Room found:', !!dbRoom);
+    console.log('Messages found:', dbMessages.length);
+
+    if (!dbRoom) {
       console.log('Room not found:', roomId);
-      console.log('Available rooms:', roomStore ? Array.from(roomStore.keys()) : []);
       return NextResponse.json({ 
-        error: 'Debate room not found. The room may have expired or the server was restarted.',
-        availableRooms: roomStore ? Array.from(roomStore.keys()) : []
+        error: 'Debate room not found. The room may have expired or the server was restarted.'
       }, { status: 404 });
     }
 
-    if (messages.length === 0) {
+    if (dbMessages.length === 0) {
       console.log('No messages found for room:', roomId);
       return NextResponse.json({ error: 'No debate messages to analyze. Please ensure the debate has started and messages have been sent.' }, { status: 400 });
     }
 
-    console.log(`Analyzing debate with ${messages.length} messages`);
+    console.log(`Analyzing debate with ${dbMessages.length} messages`);
+
+    // Convert to DebateRoom format
+    const room = DebateDatabase.convertToDebateRoom(dbRoom, participants);
+    const messages = dbMessages.map(DebateDatabase.convertToDebateMessage);
 
     // Format debate for AI analysis
     const debateText = messages.map(msg => {
@@ -58,6 +60,8 @@ Compare holistically: Weigh contentions by importance (e.g., core to topic > per
 Remain neutral: Base on substantive content only—no favoritism to style or rhetoric.
 Provide AI-unique insights: Flag patterns like fallacies, evidence density, or sentiment via semantic analysis.
 Explain thought process transparently to substantiate the verdict and reduce dissatisfaction.
+When explaining whether an argument was strong or weak cite the exact argument and explain why it was strong or weak. Similar to how a judge would explain their decision in a court case.
+When referring to clashing arguments between the two players, explain why a specific argument was stronger or weaker than the other, and how if applicable, the argument was countered. Cite the exact arguments used. 
 
 CRITICAL INSTRUCTIONS:
 1. Return ONLY a valid JSON object
@@ -100,8 +104,8 @@ Return your analysis as a JSON object with exactly this structure:
       }
     }
   },
-  "debateSummary": "The debate centered on [topic], with ${room.player1?.name || 'Player 1'} advocating for [position] while ${room.player2?.name || 'Player 2'} argued for [counter-position]. Both presented data-driven arguments about [key themes].",
-  "pointsOfContention": [
+  "debateSummary": "The debate centered on [topic], with ${room.player1?.name || 'Player 1'} advocating for [position] while ${room.player2?.name || 'Player 2'} argued for [counter-position]. Both presented data-driven arguments about [key themes].The debate went[This is where you provide a 50-100 word general commentary of the debate, identifying whether it was a good debate, bad debate, or a neutral debate and explain why you think so. For example, both parties argued well, or there was no clear engagement of each other's points. In parliamentary debate this is an overall assessment of the debate quality, not necessarily the arguments used. This is where you're brutally honest abotut whether the quality of the arguments and debate was good or bad so it is critical you provide a complete and comprehensive assessment of the debate quality.]",
+    "pointsOfContention": [
     "Main point of disagreement 1",
     "Main point of disagreement 2",
     "Main point of disagreement 3"
@@ -290,6 +294,19 @@ Return your analysis as a JSON object with exactly this structure:
     }
 
     console.log('Parsed results:', { winner, parsedAnalysis: !!parsedAnalysis });
+
+    // Save winner analysis to database
+    await db.saveWinnerAnalysis({
+      room_id: roomId,
+      winner_name: winner === 'player1' ? 
+        (room.player1?.name || 'Player 1') : 
+        (room.player2?.name || 'Player 2'),
+      winner_player: winner as 'player1' | 'player2',
+      score: parsedAnalysis.winner?.score || null,
+      summary: parsedAnalysis.debateSummary || 'Analysis completed',
+      reasoning: parsedAnalysis.holisticVerdict || 'Analysis completed',
+      analysis_data: parsedAnalysis
+    });
 
     return NextResponse.json({
       success: true,

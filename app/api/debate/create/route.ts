@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { roomStore } from '@/lib/room-store';
-import type { DebateRoom } from '@/types/debate';
+import { DebateDatabase } from '@/lib/database';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,35 +10,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Create room ID without user ID dependency
+    // Create room ID
     const roomId = `debate-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
-    const debateRoom: Partial<DebateRoom> = {
+    // Create room in database
+    const db = new DebateDatabase();
+    const dbRoom = await db.createRoom({
       id: roomId,
       title,
       topic,
-      rounds,
-      minutesPerTurn,
-      currentRound: 1,
-      currentTurn: null,
       status: 'waiting',
-      createdAt: new Date().toISOString(),
-      player1: {
-        id: `player-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-        name: playerName,
-        isReady: false,
-        joinedAt: new Date().toISOString(),
-      },
-    };
+      rounds: rounds || 3,
+      current_round: 1,
+      current_turn: null,
+      minutes_per_turn: minutesPerTurn || 5,
+      started_at: null,
+      turn_started_at: null
+    });
 
-    // Save the room to the room store so it persists
-    if (roomStore) {
-      roomStore.set(roomId, debateRoom);
-    }
+    // Add player1 as participant
+    await db.addParticipant({
+      room_id: roomId,
+      player_name: playerName,
+      player_role: 'player1',
+      is_ready: false
+    });
+
+    // Convert to DebateRoom format
+    const participants = await db.getParticipants(roomId);
+    const debateRoom = DebateDatabase.convertToDebateRoom(dbRoom, participants);
     
     return NextResponse.json({
       success: true,
-      roomId,
+      roomId: dbRoom.id,
       room: debateRoom,
     });
 
