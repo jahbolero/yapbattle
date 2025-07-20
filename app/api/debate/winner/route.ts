@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       return `${playerName}: ${msg.content}`;
     }).join('\n\n');
 
-    const prompt = `You are an impartial AI arbiter tasked with analyzing a debate between two participants on any topic, drawing from parliamentary debate judging principles. Evaluate arguments solely on their merit, using only the content in the transcript—no bias, personal preferences, emotions, or external knowledge. Determine the winner holistically by identifying points of contention, assessing how well each side argues and rebuts on each, and weighing their importance and performance.
+    const prompt = `You are an impartial AI arbiter tasked with analyzing a debate between two participants on any topic, drawing from parliamentary debate judging principles. Evaluate arguments solely on their merit, using only the content in the transcript—no bias, personal preferences, emotions, or external knowledge. Determine the winner holistically by identifying points of contention, assessing how well each side argues and rebuts on each, and weighing their importance and performance. Delve deeply into nuances, such as subtle assumptions, implicit biases in reasoning, logical fallacies, evidence depth, rebuttal specificity, and how arguments evolve across rounds.
 
 DEBATE TOPIC: ${room.topic}
 
@@ -51,83 +51,90 @@ ${debateText}
 
 Process:
 
-Summarize the key points and overall flow of the debate.
-Identify 3-5 main points of contention (battlegrounds where arguments clash, e.g., timing, costs, ethics).
-For each contention, establish criteria adapted to the topic (e.g., logical coherence, evidence use, rebuttal effectiveness, relevance, feasibility, persuasiveness).
-Analyze per contention: Extract key arguments/rebuttals from each side; evaluate what's strong (e.g., data-backed, anticipates counters), lacking (e.g., unsupported, ignored objections, fallacies); explain interactions (how one side's point relates to/undermines the other's); justify who "won" that contention based on criteria.
-Score each participant out of 10 overall (average of criteria like Logical Coherence, Evidence Use, Relevance, Counterarguments, Feasibility, Persuasiveness), and note per-contention mini-scores if relevant.
-Compare holistically: Weigh contentions by importance (e.g., core to topic > peripheral); avoid over-reliance on single arguments; declare a tie only if performances are indistinguishable across battlegrounds.
-Remain neutral: Base on substantive content only—no favoritism to style or rhetoric.
-Provide AI-unique insights: Flag patterns like fallacies, evidence density, or sentiment via semantic analysis.
-Explain thought process transparently to substantiate the verdict and reduce dissatisfaction.
-When explaining whether an argument was strong or weak cite the exact argument and explain why it was strong or weak. Similar to how a judge would explain their decision in a court case.
-When referring to clashing arguments between the two players, explain why a specific argument was stronger or weaker than the other, and how if applicable, the argument was countered. Cite the exact arguments used. 
+Summarize the key points and overall flow of the debate in detail, tracing how arguments build, clash, and resolve (or fail to) across rounds.
+Identify 4-6 main points of contention (battlegrounds where arguments clash deeply, e.g., timing, costs, ethics, assumptions, implications), ensuring they capture both explicit clashes and subtle divergences.
+For each contention, establish 3-5 tailored criteria adapted to the topic (e.g., logical coherence, evidence use and quality, rebuttal effectiveness and specificity, relevance and depth, feasibility and practicality, persuasiveness and nuance-handling).
+Analyze per contention: Extract and cite exact key arguments/rebuttals from each side across all rounds; evaluate strengths (e.g., data-backed with specifics, anticipates and preempts counters, addresses nuances) and weaknesses (e.g., unsupported claims, ignored objections, fallacies like ad hominem or strawman, oversimplifications); explain interactions in depth (how one side's point directly relates to, undermines, or fails to engage the other's, including evolution over rounds); justify who "won" that contention based on criteria, with nuanced reasoning on why specific elements tip the scale.
+Score each participant out of 10 overall (weighted average of criteria like Logical Coherence, Evidence Use, Relevance, Counterarguments, Feasibility, Persuasiveness), and provide per-contention mini-scores (e.g., 7/10 for player1 on this battleground) with breakdowns.
+Compare holistically: Weigh contentions by importance (e.g., core to topic > peripheral; assign explicit weights like 40% for central issues); factor in overall debate dynamics like consistency, adaptability, and engagement; declare a tie only if performances are truly indistinguishable after granular review.
+Remain neutral: Base on substantive content only—no favoritism to style, rhetoric, or superficial elements; highlight any unaddressed nuances fairly.
+Provide AI-unique insights: Use semantic analysis to flag patterns like fallacy frequency, evidence density, sentiment shifts, argument evolution, or rhetorical strategies; quantify where possible (e.g., "Player1 used 3 fallacies vs. Player2's 1").
+Explain thought process transparently throughout to substantiate the verdict, reduce dissatisfaction, and build trust—treat this as a detailed judicial opinion.
+When explaining whether an argument was strong or weak, cite the exact argument verbatim from the transcript, dissect its components (e.g., premise, evidence, conclusion), and explain why it succeeds/fails in context, including any nuances like contextual relevance or round-specific adaptations. Similar to how a judge would explain their decision in a court case with granular detail.
+When referring to clashing arguments between the two players, cite exact quotes from both, explain why one was stronger or weaker (e.g., better evidence, more direct rebuttal, handling of nuances), how it was countered (or not), and any ripple effects on the debate flow.
 
 CRITICAL INSTRUCTIONS:
-1. Return ONLY a valid JSON object
-2. Do not include ANY text before or after the JSON
-3. Do not wrap in markdown code blocks or backticks
-4. Do not include explanations or commentary
-5. Start directly with { and end with }
-6. Ensure all strings are properly quoted
-7. Use double quotes for all JSON keys and string values
 
+Return ONLY a valid JSON object
+Do not include ANY text before or after the JSON
+Do not wrap in markdown code blocks or backticks
+Do not include explanations or commentary
+Start directly with { and end with }
+Ensure all strings are properly quoted
+Use double quotes for all JSON keys and string values
 Return your analysis as a JSON object with exactly this structure:
 
 {
-  "winner": {
-    "name": "${room.player1?.name || 'Player 1'}",
-    "player": "player1",
-    "score": "7.5/10"
-  },
-  "scores": {
-    "player1": {
-      "overall": 7,
-      "breakdown": {
-        "logicalCoherence": 7,
-        "evidence": 8,
-        "relevance": 7,
-        "counterarguments": 6,
-        "feasibility": 7,
-        "persuasiveness": 8
-      }
-    },
-    "player2": {
-      "overall": 6,
-      "breakdown": {
-        "logicalCoherence": 6,
-        "evidence": 7,
-        "relevance": 6,
-        "counterarguments": 7,
-        "feasibility": 6,
-        "persuasiveness": 5
-      }
-    }
-  },
-  "debateSummary": "The debate centered on [topic], with ${room.player1?.name || 'Player 1'} advocating for [position] while ${room.player2?.name || 'Player 2'} argued for [counter-position]. Both presented data-driven arguments about [key themes].The debate went[This is where you provide a 50-100 word general commentary of the debate, identifying whether it was a good debate, bad debate, or a neutral debate and explain why you think so. For example, both parties argued well, or there was no clear engagement of each other's points. In parliamentary debate this is an overall assessment of the debate quality, not necessarily the arguments used. This is where you're brutally honest abotut whether the quality of the arguments and debate was good or bad so it is critical you provide a complete and comprehensive assessment of the debate quality.]",
-    "pointsOfContention": [
-    "Main point of disagreement 1",
-    "Main point of disagreement 2",
-    "Main point of disagreement 3"
-  ],
-  "contentionAnalysis": [
-    {
-      "title": "Contention Name",
-      "criteria": "Assessed on [specific criteria for this contention]",
-      "player1Analysis": "${room.player1?.name || 'Player 1'} presented [analysis of their arguments, strengths, and weaknesses]",
-      "player2Analysis": "${room.player2?.name || 'Player 2'} countered with [analysis of their arguments, strengths, and weaknesses]",
-      "outcome": "[Who won this contention and why, with specific reasoning]"
-    }
-  ],
-  "holisticVerdict": "[2-4 sentences explaining the overall winner based on weighing all contentions and their importance]",
-  "aiInsights": [
-    "Pattern or insight about the debate dynamics",
-    "Analysis of argumentation quality or fallacies"
-  ],
-  "nextSteps": [
-    "Actionable advice for participants",
-    "Recommendations for future discussions"
-  ]
+"winner": {
+"name": "${room.player1?.name || 'Player 1'}",
+"player": "player1",
+"score": "7.5/10"
+},
+"scores": {
+"player1": {
+"overall": 7,
+"breakdown": {
+"logicalCoherence": 7,
+"evidence": 8,
+"relevance": 7,
+"counterarguments": 6,
+"feasibility": 7,
+"persuasiveness": 8
+}
+},
+"player2": {
+"overall": 6,
+"breakdown": {
+"logicalCoherence": 6,
+"evidence": 7,
+"relevance": 6,
+"counterarguments": 7,
+"feasibility": 6,
+"persuasiveness": 5
+}
+}
+},
+"debateSummary": "The debate centered on [topic], with ${room.player1?.name || 'Player 1'} advocating for [position] while ${room.player2?.name || 'Player 2'} argued for [counter-position]. Both presented data-driven arguments about [key themes]. The debate flow evolved as [detailed tracing of rounds and shifts].The debate was [high/medium/low] quality, [brutally honest assessment: e.g., strong in engagement but weak in depth due to unaddressed nuances; or superficial with poor rebuttal specificity, leading to unresolved clashes]. Provide a 100-150 word comprehensive assessment of debate quality, focusing on structure, engagement depth, argument sophistication, nuance handling, and overall informativeness for a third party—be critical and specific without hinting at winner.",
+"pointsOfContention": [
+"Main point of disagreement 1",
+"Main point of disagreement 2",
+"Main point of disagreement 3",
+"Main point of disagreement 4"
+],
+"contentionAnalysis": [
+{
+"title": "Contention Name",
+"criteria": "Assessed on [3-5 specific criteria for this contention, e.g., logical coherence, evidence quality, rebuttal specificity]",
+"player1Analysis": "${room.player1?.name || 'Player 1'} presented [detailed analysis with verbatim cites, strengths/weaknesses dissection, nuances; 150-250 words for depth]",
+"player2Analysis": "${room.player2?.name || 'Player 2'} countered with [detailed analysis with verbatim cites, strengths/weaknesses dissection, nuances; 150-250 words for depth]",
+"outcome": "[Who won this contention and why, with granular reasoning citing exact arguments, interactions, and criteria application; include mini-scores like Player1: 8/10, Player2: 6/10; 100-150 words]",
+"miniScores": {
+"player1": 8,
+"player2": 6
+}
+}
+],
+"holisticVerdict": "[400-500 word detailed summary explaining the overall winner: weigh contentions with explicit percentages (e.g., Contention 1: 30% weight), discuss interplay, unaddressed nuances, overall dynamics; transparent thought process on why the scales tip, ensuring satisfaction through depth]",
+"aiInsights": [
+"Insight 1: [e.g., Semantic analysis shows Player1's evidence density at 40% higher; flag specific fallacies with cites]",
+"Insight 2: [e.g., Pattern of sentiment shifts from assertive to defensive in Round 2]",
+"Insight 3: [Additional unique analysis]"
+],
+"nextSteps": [
+"Specific actionable advice for Player1: [e.g., Strengthen rebuttals by addressing X nuance]",
+"Specific actionable advice for Player2: [e.g., Bolster evidence with more verifiable cites]",
+"General recommendations for future debates: [e.g., Focus on round-to-round adaptation]"
+]
 }`;
 
     console.log('Sending to io.net API:', {
@@ -151,7 +158,7 @@ Return your analysis as a JSON object with exactly this structure:
           }
         ],
         temperature: 0.3,
-        max_completion_tokens: 1000
+        max_completion_tokens: 3000
       })
     });
 
