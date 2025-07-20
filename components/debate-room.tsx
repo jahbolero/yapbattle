@@ -282,8 +282,17 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     }
   };
 
-  const broadcastRoomUpdate = async (updatedRoom: DebateRoom) => {
-    // Save room state to API first
+  const broadcastRoomUpdate = async (updatedRoom: DebateRoom, immediate = false) => {
+    // For ready state changes, broadcast immediately
+    if (immediate) {
+      channelRef.current?.send({
+        type: 'broadcast',
+        event: 'room-update',
+        payload: updatedRoom,
+      });
+    }
+
+    // Save room state to API (can be async)
     try {
       await fetch(`/api/debate/room/${room.id}`, {
         method: 'PUT',
@@ -294,12 +303,14 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       console.error('Error saving room state:', error);
     }
 
-    // Broadcast to other clients
-    channelRef.current?.send({
-      type: 'broadcast',
-      event: 'room-update',
-      payload: updatedRoom,
-    });
+    // If not immediate, broadcast after API save
+    if (!immediate) {
+      channelRef.current?.send({
+        type: 'broadcast',
+        event: 'room-update',
+        payload: updatedRoom,
+      });
+    }
   };
 
   const startTimer = (duration: number) => {
@@ -409,7 +420,7 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     }
 
     setRoom(updatedRoom);
-    broadcastRoomUpdate(updatedRoom);
+    broadcastRoomUpdate(updatedRoom, true); // Immediate broadcast for ready state changes
   };
 
   const startDebate = () => {
