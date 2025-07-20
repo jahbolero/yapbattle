@@ -465,7 +465,14 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
 
     setNewMessage('');
 
-    // Save message to API first
+    // Broadcast message immediately for instant feedback
+    channelRef.current?.send({
+      type: 'broadcast',
+      event: 'message',
+      payload: message,
+    });
+
+    // Save message to API in background
     try {
       await fetch(`/api/debate/messages/${room.id}`, {
         method: 'POST',
@@ -475,13 +482,6 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     } catch (error) {
       console.error('Error saving message:', error);
     }
-
-    // Broadcast message
-    channelRef.current?.send({
-      type: 'broadcast',
-      event: 'message',
-      payload: message,
-    });
 
     // Switch turn after sending
     setTimeout(() => switchTurn(), 1000);
