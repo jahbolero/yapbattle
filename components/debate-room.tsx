@@ -418,7 +418,6 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     // Check if both players exist and are ready
     const bothPlayersExist = updatedRoom.player1 && updatedRoom.player2;
     const bothPlayersReady = updatedRoom.player1?.isReady && updatedRoom.player2?.isReady;
-    
     // Don't change status if debate is already finished or has started
     if (room.status === 'finished' || room.status === 'active' || room.startedAt) {
       // Preserve the existing status and all timestamps
@@ -436,9 +435,10 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       // Keep current status if not both players joined yet
       updatedRoom.status = room.status;
     }
-
-    setRoom(updatedRoom);
-    broadcastRoomUpdate(updatedRoom, true); // Immediate broadcast for ready state changes
+    if(room.status !== 'finished'){
+      setRoom(updatedRoom);
+      broadcastRoomUpdate(updatedRoom, true); // Immediate broadcast for ready state changes
+    }
   };
 
   const startDebate = () => {
