@@ -623,33 +623,6 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
         </Card>
       )}
 
-      {/* Debate Finished Message */}
-      {room.status === 'finished' && (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <h3 className="text-lg font-semibold mb-2">🎉 Debate Complete!</h3>
-            <p className="text-muted-foreground mb-4">
-              The debate has finished after {room.rounds} rounds. 
-              Thank you both for participating!
-            </p>
-            
-            {!winner && !analyzingWinner && (
-              <Button 
-                onClick={analyzeWinner} 
-                className="mt-4"
-              >
-                Get AI Winner Analysis
-              </Button>
-            )}
-            
-            {analyzingWinner && (
-              <div className="mt-4 p-4 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground">🤖 AI is analyzing the debate...</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {/* Winner Analysis - Show whenever we have winner data, regardless of room status */}
       {winner && (
