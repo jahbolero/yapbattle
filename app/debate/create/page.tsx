@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, Users, MessageSquare } from 'lucide-react';
+import { Clock, Users, MessageSquare, ArrowLeft } from 'lucide-react';
 
 export default function CreateDebatePage() {
   const router = useRouter();
@@ -61,46 +60,67 @@ export default function CreateDebatePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="flex items-center justify-center gap-2">
-            <MessageSquare className="h-6 w-6" />
-            Create Debate Room
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Creating as: <span className="font-medium">{playerName}</span>
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 p-6">
+      {/* Header */}
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => router.push('/')}
+            className="rounded-xl border-purple-300 text-purple-700 hover:bg-purple-50 font-medium"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Create Debate Room</h1>
+            <p className="text-gray-700">Set up a new debate with custom rules</p>
+          </div>
+        </div>
+
+        {/* Main Form */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl max-w-2xl border border-purple-200/50">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <MessageSquare className="h-7 w-7 text-white" />
+            </div>
             <div>
-              <Label htmlFor="title">Room Title</Label>
+              <h2 className="text-xl font-semibold text-gray-900">Room Details</h2>
+              <p className="text-sm text-gray-600">Creating as: <span className="font-medium text-gray-700">{playerName}</span></p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-sm font-medium text-gray-700">Room Title</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="e.g., Climate Change Debate"
                 required
+                className="rounded-xl border-purple-300 !bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
               />
             </div>
 
-            <div>
-              <Label htmlFor="topic">Debate Topic</Label>
+            <div className="space-y-2">
+              <Label htmlFor="topic" className="text-sm font-medium text-gray-700">Debate Topic</Label>
               <Input
                 id="topic"
                 value={formData.topic}
                 onChange={(e) => setFormData(prev => ({ ...prev, topic: e.target.value }))}
                 placeholder="What are you debating about?"
                 required
+                className="rounded-xl border-purple-300 !bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="rounds" className="flex items-center gap-1">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="rounds" className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Rounds
+                  Number of Rounds
                 </Label>
                 <Input
                   id="rounds"
@@ -110,13 +130,14 @@ export default function CreateDebatePage() {
                   value={formData.rounds}
                   onChange={(e) => setFormData(prev => ({ ...prev, rounds: parseInt(e.target.value) }))}
                   required
+                  className="rounded-xl border-purple-300 !bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
 
-              <div>
-                <Label htmlFor="minutes" className="flex items-center gap-1">
+              <div className="space-y-2">
+                <Label htmlFor="minutes" className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  Minutes/Turn
+                  Minutes per Turn
                 </Label>
                 <Input
                   id="minutes"
@@ -126,16 +147,56 @@ export default function CreateDebatePage() {
                   value={formData.minutesPerTurn}
                   onChange={(e) => setFormData(prev => ({ ...prev, minutesPerTurn: parseInt(e.target.value) }))}
                   required
+                  className="rounded-xl border-purple-300 !bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Room'}
-            </Button>
+            <div className="pt-6">
+              <Button 
+                type="submit" 
+                className="w-full rounded-xl h-14 text-base font-medium bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-lg transform transition-all duration-200 hover:scale-105" 
+                disabled={loading}
+              >
+                {loading ? 'Creating Room...' : 'Create Debate Room'}
+              </Button>
+            </div>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Info Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-purple-200/50 hover:shadow-2xl transition-all duration-300">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Users className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="font-semibold text-gray-900">Multiplayer</h3>
+            </div>
+            <p className="text-sm text-gray-700 leading-relaxed">Invite opponents to join your debate room</p>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-purple-200/50 hover:shadow-2xl transition-all duration-300">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Clock className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="font-semibold text-gray-900">Timed Turns</h3>
+            </div>
+            <p className="text-sm text-gray-700 leading-relaxed">Structured debate with timed responses</p>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-purple-200/50 hover:shadow-2xl transition-all duration-300">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <MessageSquare className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="font-semibold text-gray-900">AI Analysis</h3>
+            </div>
+            <p className="text-sm text-gray-700 leading-relaxed">Get detailed analysis of the debate</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

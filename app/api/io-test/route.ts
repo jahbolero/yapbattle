@@ -68,7 +68,7 @@ async function analyzeDebate(room: {
 }) {
   const debateText = room.messages.join('\n\n');
 
-  const prompt = `You are an impartial AI arbiter tasked with analyzing a debate between two participants on any topic, drawing from parliamentary debate judging principles. Evaluate arguments solely on their merit, using only the content in the transcript—no bias, personal preferences, emotions, or external knowledge. Determine the winner holistically by identifying points of contention, assessing how well each side argues and rebuts on each, and weighing their importance and performance.
+  const prompt = `You are an impartial AI arbiter tasked with analyzing a debate between two participants on any topic, drawing from parliamentary debate judging principles. Evaluate arguments solely on their merit, using only the content in the transcript—no bias, personal preferences, emotions, or external knowledge. Determine the winner holistically by identifying points of contention, assessing how well each side argues and rebuts on each, and weighing their importance and performance. Delve deeply into nuances, such as subtle assumptions, implicit biases in reasoning, logical fallacies, evidence depth, rebuttal specificity, and how arguments evolve across rounds.
 
 DEBATE TOPIC: ${room.topic}
 
@@ -77,82 +77,100 @@ ${debateText}
 
 Process:
 
-Summarize the key points and overall flow of the debate.
-Identify 3-5 main points of contention (battlegrounds where arguments clash, e.g., timing, costs, ethics).
-For each contention, establish criteria adapted to the topic (e.g., logical coherence, evidence use, rebuttal effectiveness, relevance, feasibility, persuasiveness).
-Analyze per contention: Extract key arguments/rebuttals from each side; evaluate what's strong (e.g., data-backed, anticipates counters), lacking (e.g., unsupported, ignored objections, fallacies); explain interactions (how one side's point relates to/undermines the other's); justify who "won" that contention based on criteria.
-Score each participant out of 10 overall (average of criteria like Logical Coherence, Evidence Use, Relevance, Counterarguments, Feasibility, Persuasiveness), and note per-contention mini-scores if relevant.
-Compare holistically: Weigh contentions by importance (e.g., core to topic > peripheral); avoid over-reliance on single arguments; declare a tie only if performances are indistinguishable across battlegrounds.
-Remain neutral: Base on substantive content only—no favoritism to style or rhetoric.
-Provide AI-unique insights: Flag patterns like fallacies, evidence density, or sentiment via semantic analysis.
-Explain thought process transparently to substantiate the verdict and reduce dissatisfaction.
+Summarize the key points and overall flow of the debate in detail, tracing how arguments build, clash, and resolve (or fail to) across rounds.
+Identify 4-6 main points of contention (battlegrounds where arguments clash deeply, e.g., timing, costs, ethics, assumptions, implications), ensuring they capture both explicit clashes and subtle divergences.
+For each contention, establish 3-5 tailored criteria adapted to the topic (e.g., logical coherence, evidence use and quality, rebuttal effectiveness and specificity, relevance and depth, feasibility and practicality, persuasiveness and nuance-handling).
+Analyze per contention: Extract and cite exact key arguments/rebuttals from each side across all rounds; evaluate strengths (e.g., data-backed with specifics, anticipates and preempts counters, addresses nuances) and weaknesses (e.g., unsupported claims, ignored objections, fallacies like ad hominem or strawman, oversimplifications); explain interactions in depth (how one side's point directly relates to, undermines, or fails to engage the other's, including evolution over rounds); justify who "won" that contention based on criteria, with nuanced reasoning on why specific elements tip the scale.
+Score each participant out of 10 overall (weighted average of criteria like Logical Coherence, Evidence Use, Relevance, Counterarguments, Feasibility, Persuasiveness), and provide per-contention mini-scores (e.g., 7/10 for player1 on this battleground) with breakdowns.
+Compare holistically: Weigh contentions by importance (e.g., core to topic > peripheral; assign explicit weights like 40% for central issues); factor in overall debate dynamics like consistency, adaptability, and engagement; declare a tie only if performances are truly indistinguishable after granular review.
+Remain neutral: Base on substantive content only—no favoritism to style, rhetoric, or superficial elements; highlight any unaddressed nuances fairly.
+Provide AI-unique insights: Use semantic analysis to flag patterns like fallacy frequency, evidence density, sentiment shifts, argument evolution, or rhetorical strategies; quantify where possible (e.g., "Player1 used 3 fallacies vs. Player2's 1").
+Explain thought process transparently throughout to substantiate the verdict, reduce dissatisfaction, and build trust—treat this as a detailed judicial opinion.
+When explaining whether an argument was strong or weak, cite the exact argument verbatim from the transcript, dissect its components (e.g., premise, evidence, conclusion), and explain why it succeeds/fails in context, including any nuances like contextual relevance or round-specific adaptations. Similar to how a judge would explain their decision in a court case with granular detail.
+When referring to clashing arguments between the two players, cite exact quotes from both, explain why one was stronger or weaker (e.g., better evidence, more direct rebuttal, handling of nuances), how it was countered (or not), and any ripple effects on the debate flow.
+THERE SHOULD ABSOLUTELY BE NO BIAS VS PLAYER 1 OR PLAYER 2. THEY WILL BE ASSESSED FAIRLY, REGARDLESS WHO PLAYER 1 OR 2 IS. 
+Should it be absolutely necessary, declare a tie.
 
-CRITICAL: Return ONLY valid JSON. Do not include any text before or after the JSON. Do not wrap in markdown code blocks. Start with { and end with }.
+CRITICAL INSTRUCTIONS:
 
+Return ONLY a valid JSON object
+Do not include ANY text before or after the JSON
+Do not wrap in markdown code blocks or backticks
+Do not include explanations or commentary
+Start directly with { and end with }
+Ensure all strings are properly quoted
+Use double quotes for all JSON keys and string values
 Return your analysis as a JSON object with exactly this structure:
 
 {
-  "winner": {
-    "name": "Marcus Chen (CEO)",
-    "player": "player1",
-    "score": "7.5/10"
-  },
-  "scores": {
-    "player1": {
-      "overall": 7,
-      "breakdown": {
-        "logicalCoherence": 7,
-        "evidence": 8,
-        "relevance": 7,
-        "counterarguments": 6,
-        "feasibility": 7,
-        "persuasiveness": 8
-      }
-    },
-    "player2": {
-      "overall": 6,
-      "breakdown": {
-        "logicalCoherence": 6,
-        "evidence": 7,
-        "relevance": 6,
-        "counterarguments": 7,
-        "feasibility": 6,
-        "persuasiveness": 5
-      }
-    }
-  },
-  "debateSummary": "The debate centered on TechCorp's expansion strategy, with Marcus advocating for immediate international expansion to Asia-Pacific markets while Diana argued for domestic consolidation first. Both presented data-driven arguments about market timing, resource allocation, and competitive positioning.",
-  "pointsOfContention": [
-    "Timing of international expansion vs domestic consolidation",
-    "Resource allocation and operational capacity",
-    "Market opportunity assessment and competitive positioning"
-  ],
-  "contentionAnalysis": [
-    {
-      "title": "Expansion Timing",
-      "criteria": "Assessed on market readiness evidence and competitive urgency arguments",
-      "player1Analysis": "Marcus presented strong data on Asia-Pacific market growth (340% smartphone penetration) and competitive threats, arguing for immediate action to capture market share before competitors establish dominance.",
-      "player2Analysis": "Diana countered with domestic opportunity data (8% current penetration vs 15-20% potential) and resource constraint concerns, advocating for consolidation before expansion to maximize ROI.",
-      "outcome": "Marcus won this contention with more compelling urgency arguments and specific market data, though Diana raised valid resource concerns."
-    }
-  ],
-  "holisticVerdict": "Marcus Chen prevailed by presenting more compelling evidence for market urgency and competitive positioning, while effectively addressing Diana's resource concerns with phased expansion proposals. His strategic vision outweighed Diana's risk-averse approach.",
-  "aiInsights": [
-    "Marcus used 23% more specific data points and statistics to support arguments",
-    "Diana's arguments focused heavily on risk mitigation but lacked counter-proposals for competitive threats"
-  ],
-  "nextSteps": [
-    "Develop detailed phased expansion plan addressing Diana's resource concerns",
-    "Conduct deeper competitive analysis of Asia-Pacific market timing"
-  ]
+"winner": {
+"name": "${room.player1}",
+"player": "player1",
+"score": "7.5/10"
+},
+"scores": {
+"player1": {
+"overall": 7,
+"breakdown": {
+"logicalCoherence": 7,
+"evidence": 8,
+"relevance": 7,
+"counterarguments": 6,
+"feasibility": 7,
+"persuasiveness": 8
+}
+},
+"player2": {
+"overall": 6,
+"breakdown": {
+"logicalCoherence": 6,
+"evidence": 7,
+"relevance": 6,
+"counterarguments": 7,
+"feasibility": 6,
+"persuasiveness": 5
+}
+}
+},
+"debateSummary": "The debate centered on [topic], with ${room.player1} advocating for [position] while ${room.player2} argued for [counter-position]. Both presented data-driven arguments about [key themes]. The debate flow evolved as [detailed tracing of rounds and shifts].The debate was [high/medium/low] quality, [brutally honest assessment: e.g., strong in engagement but weak in depth due to unaddressed nuances; or superficial with poor rebuttal specificity, leading to unresolved clashes]. Provide a 100-150 word comprehensive assessment of debate quality, focusing on structure, engagement depth, argument sophistication, nuance handling, and overall informativeness for a third party—be critical and specific without hinting at winner.",
+"pointsOfContention": [
+"Main point of disagreement 1",
+"Main point of disagreement 2",
+"Main point of disagreement 3",
+"Main point of disagreement 4"
+],
+"contentionAnalysis": [
+{
+"title": "Contention Name",
+"criteria": "Assessed on [3-5 specific criteria for this contention, e.g., logical coherence, evidence quality, rebuttal specificity]",
+"player1Analysis": "${room.player1} presented [detailed analysis with verbatim cites, strengths/weaknesses dissection, nuances; 150-250 words for depth]",
+"player2Analysis": "${room.player2} countered with [detailed analysis with verbatim cites, strengths/weaknesses dissection, nuances; 150-250 words for depth]",
+"outcome": "[Who won this contention and why, with granular reasoning citing exact arguments, interactions, and criteria application; include mini-scores like Player1: 8/10, Player2: 6/10; 100-150 words]",
+"miniScores": {
+"player1": 8,
+"player2": 6
+}
+}
+],
+"holisticVerdict": "[400-500 word detailed summary explaining the overall winner: weigh contentions with explicit percentages (e.g., Contention 1: 30% weight), discuss interplay, unaddressed nuances, overall dynamics; transparent thought process on why the scales tip, ensuring satisfaction through depth]",
+"aiInsights": [
+"Insight 1: [e.g., Semantic analysis shows Player1's evidence density at 40% higher; flag specific fallacies with cites]",
+"Insight 2: [e.g., Pattern of sentiment shifts from assertive to defensive in Round 2]",
+"Insight 3: [Additional unique analysis]"
+],
+"nextSteps": [
+"Specific actionable advice for Player1: [e.g., Strengthen rebuttals by addressing X nuance]",
+"Specific actionable advice for Player2: [e.g., Bolster evidence with more verifiable cites]",
+"General recommendations for future debates: [e.g., Focus on round-to-round adaptation]"
+]
 }`;
 
-  console.log('Sending to io.net:', {
-    prompt: prompt.substring(0, 200) + '...',
+  console.log('Sending to io.net API:', {
+    promptLength: prompt.length,
     apiKey: process.env.IONET_API_KEY ? 'Present' : 'Missing'
   });
 
-  // Call io.net Chat Completions API directly
+  // Call io.net Chat Completions API directly for better results
   const response = await fetch('https://api.intelligence.io.solutions/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -168,7 +186,7 @@ Return your analysis as a JSON object with exactly this structure:
         }
       ],
       temperature: 0.3,
-      max_completion_tokens: 1000
+      max_completion_tokens: 3000
     })
   });
 
@@ -202,6 +220,9 @@ Return your analysis as a JSON object with exactly this structure:
     }
   }
   
+  console.log('Raw analysis result (first 500 chars):', analysis.substring(0, 500));
+  console.log('Raw analysis result (last 200 chars):', analysis.substring(Math.max(0, analysis.length - 200)));
+  
   // Parse JSON response
   let parsedAnalysis;
   let winner, reason;
@@ -215,27 +236,50 @@ Return your analysis as a JSON object with exactly this structure:
   } catch (error) {
     console.error('Failed to parse JSON analysis:', error);
     
-    // Try to extract JSON from text response (sometimes AI wraps it in markdown)
-    const jsonMatch = analysis.match(/```json\s*([\s\S]*?)\s*```/) || analysis.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
+    // Try to extract JSON from text response (sometimes AI wraps it in markdown or adds extra text)
+    let jsonText = analysis;
+    
+    // Remove markdown code blocks if present
+    const markdownMatch = analysis.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (markdownMatch) {
+      jsonText = markdownMatch[1];
+    }
+    
+    // Find the JSON object (from first { to last })
+    const firstBrace = jsonText.indexOf('{');
+    const lastBrace = jsonText.lastIndexOf('}');
+    
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      jsonText = jsonText.substring(firstBrace, lastBrace + 1);
+      
       try {
-        parsedAnalysis = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+        parsedAnalysis = JSON.parse(jsonText);
         console.log('Extracted JSON from text:', parsedAnalysis);
       } catch (e) {
         console.error('Failed to parse extracted JSON:', e);
+        console.error('Extracted text was:', jsonText.substring(0, 200));
         parsedAnalysis = null;
       }
     } else {
+      console.error('No valid JSON structure found in response');
       parsedAnalysis = null;
     }
   }
   
-  // Extract winner and reason from parsed JSON or fallback
-  if (parsedAnalysis && parsedAnalysis.winner) {
-    winner = parsedAnalysis.winner.player || 'player1';
-    reason = parsedAnalysis.holisticVerdict || 'Analysis completed';
-    console.log('Using JSON parsed winner:', winner);
-  } else {
+      // Extract winner and reason from parsed JSON or fallback
+    if (parsedAnalysis && parsedAnalysis.winner) {
+      const rawWinner = parsedAnalysis.winner.player || 'player1';
+      reason = parsedAnalysis.holisticVerdict || 'Analysis completed';
+      console.log('Using JSON parsed winner:', rawWinner);
+      
+      // Handle tie cases - map 'tie' to a valid database value
+      if (rawWinner.toLowerCase() === 'tie') {
+        winner = 'player1'; // Default to player1 for database constraint, but mark as tie in analysis
+        console.log('Detected tie, mapping to player1 for database constraint');
+      } else {
+        winner = rawWinner;
+      }
+    } else {
     console.log('Falling back to regex parsing');
     // Fallback parsing for non-JSON responses
     const winnerMatch = analysis.match(/🏆 Winner:\s*(.*?)(?:\n|$)/i) || 
@@ -246,9 +290,9 @@ Return your analysis as a JSON object with exactly this structure:
     console.log('Regex found winner:', winnerRaw);
     
     // Map name-based winners to player numbers
-    if (winnerRaw.toLowerCase().includes('marcus') || winnerRaw.toLowerCase().includes('chen') || winnerRaw.toLowerCase().includes('ceo')) {
+    if (winnerRaw.toLowerCase().includes(room.player1.toLowerCase()) || winnerRaw.toLowerCase().includes('marcus') || winnerRaw.toLowerCase().includes('chen') || winnerRaw.toLowerCase().includes('ceo')) {
       winner = 'player1';
-    } else if (winnerRaw.toLowerCase().includes('diana') || winnerRaw.toLowerCase().includes('rodriguez') || winnerRaw.toLowerCase().includes('cfo')) {
+    } else if (winnerRaw.toLowerCase().includes(room.player2.toLowerCase()) || winnerRaw.toLowerCase().includes('diana') || winnerRaw.toLowerCase().includes('rodriguez') || winnerRaw.toLowerCase().includes('cfo')) {
       winner = 'player2';
     } else if (winnerRaw.match(/^player[12]$/i)) {
       winner = winnerRaw.toLowerCase();
@@ -282,24 +326,37 @@ Return your analysis as a JSON object with exactly this structure:
         {
           title: "Expansion Timing",
           criteria: "Assessed on market readiness and competitive positioning",
-          player1Analysis: "Argued for immediate expansion to capture market opportunities",
-          player2Analysis: "Advocated for domestic consolidation before international expansion",
-          outcome: "Close contention with valid points on both sides"
+          player1Analysis: `${room.player1} argued for immediate expansion to capture market opportunities`,
+          player2Analysis: `${room.player2} advocated for domestic consolidation before international expansion`,
+          outcome: "Close contention with valid points on both sides",
+          miniScores: {
+            player1: 7,
+            player2: 6
+          }
         }
       ],
-      holisticVerdict: reason,
+      holisticVerdict: reason || "Based on the analysis of the contentions, the winner demonstrated stronger overall argumentation with better evidence and logical coherence.",
       aiInsights: ["Both participants demonstrated strong analytical skills", "Arguments were well-supported with data"],
       nextSteps: ["Consider hybrid approach", "Conduct deeper market analysis"]
     };
   }
 
+  console.log('Parsed results:', { winner, parsedAnalysis: !!parsedAnalysis });
+
+  // Check if this was actually a tie
+  const isTie = parsedAnalysis?.winner?.player?.toLowerCase() === 'tie';
+
   return NextResponse.json({
     success: true,
     room,
     rawResponse: analysis,
-    parsedAnalysis,
+    parsedAnalysis: {
+      ...parsedAnalysis,
+      isTie: isTie
+    },
     winner,
     reason,
-    winnerName: winner === 'player1' ? room.player1 : room.player2
+    winnerName: winner === 'player1' ? room.player1 : room.player2,
+    isTie: isTie
   });
 }

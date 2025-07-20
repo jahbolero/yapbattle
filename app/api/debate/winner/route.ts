@@ -62,6 +62,8 @@ Provide AI-unique insights: Use semantic analysis to flag patterns like fallacy 
 Explain thought process transparently throughout to substantiate the verdict, reduce dissatisfaction, and build trust—treat this as a detailed judicial opinion.
 When explaining whether an argument was strong or weak, cite the exact argument verbatim from the transcript, dissect its components (e.g., premise, evidence, conclusion), and explain why it succeeds/fails in context, including any nuances like contextual relevance or round-specific adaptations. Similar to how a judge would explain their decision in a court case with granular detail.
 When referring to clashing arguments between the two players, cite exact quotes from both, explain why one was stronger or weaker (e.g., better evidence, more direct rebuttal, handling of nuances), how it was countered (or not), and any ripple effects on the debate flow.
+THERE SHOULD ABSOLUTELY BE NO BIAS VS PLAYER 1 OR PLAYER 2. THEY WILL BE ASSESSED FAIRLY, REGARDLESS WHO PLAYER 1 OR 2 IS. 
+Should it be absolutely necessary, declare a tie.
 
 CRITICAL INSTRUCTIONS:
 
@@ -78,29 +80,29 @@ Return your analysis as a JSON object with exactly this structure:
 "winner": {
 "name": "${room.player1?.name || 'Player 1'}",
 "player": "player1",
-"score": "7.5/10"
+"score": "x/10"
 },
 "scores": {
 "player1": {
-"overall": 7,
+"overall": X,
 "breakdown": {
-"logicalCoherence": 7,
-"evidence": 8,
-"relevance": 7,
-"counterarguments": 6,
-"feasibility": 7,
-"persuasiveness": 8
+"logicalCoherence": X,
+"evidence": X,
+"relevance": X,
+"counterarguments": X,
+"feasibility": X,
+"persuasiveness": X
 }
 },
 "player2": {
-"overall": 6,
+"overall": X,
 "breakdown": {
-"logicalCoherence": 6,
-"evidence": 7,
-"relevance": 6,
-"counterarguments": 7,
-"feasibility": 6,
-"persuasiveness": 5
+"logicalCoherence": X,
+"evidence": X,
+"relevance": X,
+"counterarguments": X,
+"feasibility": X,
+"persuasiveness": X
 }
 }
 },
@@ -119,8 +121,8 @@ Return your analysis as a JSON object with exactly this structure:
 "player2Analysis": "${room.player2?.name || 'Player 2'} countered with [detailed analysis with verbatim cites, strengths/weaknesses dissection, nuances; 150-250 words for depth]",
 "outcome": "[Who won this contention and why, with granular reasoning citing exact arguments, interactions, and criteria application; include mini-scores like Player1: 8/10, Player2: 6/10; 100-150 words]",
 "miniScores": {
-"player1": 8,
-"player2": 6
+"player1": X,
+"player2": X
 }
 }
 ],
@@ -239,9 +241,17 @@ Return your analysis as a JSON object with exactly this structure:
     
     // Extract winner and reason from parsed JSON or fallback
     if (parsedAnalysis && parsedAnalysis.winner) {
-      winner = parsedAnalysis.winner.player || 'player1';
+      const rawWinner = parsedAnalysis.winner.player || 'player1';
       reason = parsedAnalysis.holisticVerdict || 'Analysis completed';
-      console.log('Using JSON parsed winner:', winner);
+      console.log('Using JSON parsed winner:', rawWinner);
+      
+            // Handle tie cases - map 'tie' to a valid database value
+      if (rawWinner.toLowerCase() === 'tie') {
+        winner = 'player1'; // Default to player1 for database constraint, but mark as tie in analysis
+        console.log('Detected tie, mapping to player1 for database constraint');
+      } else {
+        winner = rawWinner;
+      }
     } else {
       console.log('Falling back to regex parsing');
       // Fallback parsing for non-JSON responses
@@ -302,6 +312,9 @@ Return your analysis as a JSON object with exactly this structure:
 
     console.log('Parsed results:', { winner, parsedAnalysis: !!parsedAnalysis });
 
+          // Check if this was actually a tie
+      const isTie = parsedAnalysis?.winner?.player?.toLowerCase() === 'tie';
+
     // Save winner analysis to database
     await db.saveWinnerAnalysis({
       room_id: roomId,
@@ -312,7 +325,10 @@ Return your analysis as a JSON object with exactly this structure:
       score: parsedAnalysis.winner?.score || null,
       summary: parsedAnalysis.debateSummary || 'Analysis completed',
       reasoning: parsedAnalysis.holisticVerdict || 'Analysis completed',
-      analysis_data: parsedAnalysis
+      analysis_data: {
+        ...parsedAnalysis,
+        isTie: isTie // Add tie information to analysis data
+      }
     });
 
     return NextResponse.json({
@@ -323,7 +339,11 @@ Return your analysis as a JSON object with exactly this structure:
       winnerName: winner === 'player1' ? 
         (room.player1?.name || 'Player 1') : 
         (room.player2?.name || 'Player 2'),
-      parsedAnalysis
+      isTie: isTie,
+      parsedAnalysis: {
+        ...parsedAnalysis,
+        isTie: isTie
+      }
     });
 
   } catch (error) {

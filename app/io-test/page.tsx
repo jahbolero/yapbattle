@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { DebateRoom, DebateMessage } from '@/types/debate';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Play, Copy, Check } from 'lucide-react';
 
@@ -77,6 +76,8 @@ export default function IoTestPage() {
   const [error, setError] = useState<TestError | null>(null);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Test debate data - mirrors the real debate structure
   const [testRoom] = useState<DebateRoom>({
@@ -103,10 +104,6 @@ export default function IoTestPage() {
     turnStartedAt: new Date().toISOString(),
     createdAt: new Date().toISOString()
   });
-
-
-
-
 
   // Pre-defined debate messages
   const debateMessages: DebateMessage[] = [
@@ -224,6 +221,38 @@ export default function IoTestPage() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Scroll to bottom when current messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [currentMessageIndex]);
+
+  // Fake progress bar for AI analysis
+  useEffect(() => {
+    if (simulationState === 'analyzing') {
+      setAnalysisProgress(0);
+      const interval = setInterval(() => {
+        setAnalysisProgress(prev => {
+          if (prev >= 95) {
+            return prev; // Stop at 95% to never complete
+          }
+          // Start fast, then slow down
+          const remaining = 95 - prev;
+          const increment = Math.max(0.5, remaining * 0.02);
+          return Math.min(95, prev + increment);
+        });
+      }, 100);
+
+      return () => clearInterval(interval);
+    } else {
+      setAnalysisProgress(0);
+    }
+  }, [simulationState]);
+
   // Create a room with the current status for display
   const displayRoom: DebateRoom = {
     ...testRoom,
@@ -234,65 +263,75 @@ export default function IoTestPage() {
   const currentMessages = debateMessages.slice(0, currentMessageIndex);
 
   return (
-    <div className="min-h-screen p-4 space-y-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 p-6">
       {/* Simulation Controls */}
-      <div className="fixed top-4 right-4 z-50">
-        <Card className="w-80">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Play className="h-4 w-4" />
-              AI Debate Simulation
-            </CardTitle>
-            <CardDescription>
-              Test the debate analysis system with pre-defined arguments
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      <div className="fixed top-6 right-6 z-50">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-purple-200/50 w-80">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Play className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">AI Debate Simulation</h3>
+              <p className="text-sm text-gray-600">Test the debate analysis system</p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
             {simulationState === 'idle' && (
-              <Button onClick={runSimulation} className="w-full">
+              <Button onClick={runSimulation} className="w-full rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-lg transform transition-all duration-200 hover:scale-105">
                 <Play className="h-4 w-4 mr-2" />
                 Run Simulation
               </Button>
             )}
 
             {simulationState === 'running' && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                  <span className="text-sm">Simulating debate...</span>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                  <span className="text-sm font-medium text-gray-700">Simulating debate...</span>
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-gray-600">
                   Message {currentMessageIndex}/{debateMessages.length}
                 </div>
               </div>
             )}
 
             {simulationState === 'analyzing' && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                  <span className="text-sm">AI analyzing debate...</span>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
+                  <span className="text-sm font-medium text-gray-700">AI analyzing debate...</span>
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-gray-600 mb-3">
                   🤖 Processing arguments and determining winner
                 </div>
+                <div className="w-full bg-white/50 rounded-full h-2 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-300 ease-out"
+                    style={{ width: `${analysisProgress}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-600 text-center">
+                  {Math.round(analysisProgress)}% complete
+                </p>
               </div>
             )}
 
             {simulationState === 'complete' && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {error && (
-                  <div className="p-3 bg-destructive/10 border border-destructive rounded text-sm">
-                    <p className="font-semibold text-destructive">{error.error}</p>
-                    <p className="text-muted-foreground">{error.details}</p>
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm">
+                    <p className="font-semibold text-red-700">{error.error}</p>
+                    <p className="text-red-600 mt-1">{error.details}</p>
                   </div>
                 )}
 
                 {result && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">Winner:</span>
-                      <Badge variant={result.winner === 'player1' ? 'default' : 'secondary'}>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-semibold text-gray-700">Winner:</span>
+                      <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-1 rounded-full">
                         {(() => {
                           const winnerMatch = result.rawResponse.match(/🏆 Winner: (.*?)(?:\n|$)/);
                           return winnerMatch?.[1] || result.winnerName;
@@ -301,8 +340,8 @@ export default function IoTestPage() {
                     </div>
                     
                     <div className="space-y-2">
-                      <span className="text-xs font-medium">Score:</span>
-                      <div className="text-xs text-muted-foreground">
+                      <span className="text-xs font-medium text-gray-700">Score:</span>
+                      <div className="text-xs text-gray-600">
                         {(() => {
                           const scoreMatch = result.rawResponse.match(/Score: (.*?)(?:\n|$)/);
                           return scoreMatch?.[1] || 'Analysis completed';
@@ -311,277 +350,279 @@ export default function IoTestPage() {
                     </div>
                     
                     <div className="space-y-2">
-                      <span className="text-xs font-medium">Full Analysis:</span>
-                      <div className="p-2 bg-muted rounded max-h-32 overflow-y-auto">
-                        <pre className="whitespace-pre-wrap text-xs">{result.rawResponse}</pre>
+                      <span className="text-xs font-medium text-gray-700">Full Analysis:</span>
+                      <div className="p-3 bg-gray-50 rounded-xl max-h-32 overflow-y-auto border border-gray-200">
+                        <pre className="whitespace-pre-wrap text-xs text-gray-700">{result.rawResponse}</pre>
                       </div>
                     </div>
                   </div>
                 )}
 
-                <Button onClick={resetSimulation} variant="outline" size="sm" className="w-full">
+                <Button onClick={resetSimulation} variant="outline" size="sm" className="w-full rounded-xl border-purple-300 text-purple-700 hover:bg-purple-50 font-medium">
                   Reset Simulation
                 </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Room Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle>{displayRoom.title}</CardTitle>
-              <p className="text-muted-foreground mt-1">{displayRoom.topic}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={
-                displayRoom.status === 'active' ? 'default' : 
-                displayRoom.status === 'finished' ? 'destructive' : 
-                'secondary'
-              }>
-                {displayRoom.status === 'finished' ? 'Debate Finished' : displayRoom.status}
-              </Badge>
-              <Button variant="outline" size="sm" onClick={copyRoomLink}>
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied ? 'Copied!' : 'Share'}
-              </Button>
-            </div>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-3">{displayRoom.title}</h1>
+            <p className="text-gray-700 text-lg">{displayRoom.topic}</p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold">{displayRoom.currentRound}/{displayRoom.rounds}</div>
-              <div className="text-sm text-muted-foreground">Round</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold">{formatTime(displayRoom.minutesPerTurn * 60)}</div>
-              <div className="text-sm text-muted-foreground">Time Left</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold">{displayRoom.minutesPerTurn}m</div>
-              <div className="text-sm text-muted-foreground">Per Turn</div>
-            </div>
+          <div className="flex items-center gap-4">
+            <Badge variant={
+              displayRoom.status === 'active' ? 'default' : 
+              displayRoom.status === 'finished' ? 'destructive' : 
+              'secondary'
+            } className="px-4 py-2 rounded-xl font-medium">
+              {displayRoom.status === 'finished' ? 'Debate Finished' : displayRoom.status}
+            </Badge>
+            <Button variant="outline" size="sm" onClick={copyRoomLink} className="rounded-xl border-purple-300 text-purple-700 hover:bg-purple-50 font-medium">
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? 'Copied!' : 'Share'}
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-6 mt-8 text-center">
+          <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-6 border border-purple-300/50">
+            <div className="text-3xl font-bold text-purple-700">{displayRoom.currentRound}/{displayRoom.rounds}</div>
+            <div className="text-sm text-purple-600 mt-2 font-medium">Round</div>
+          </div>
+          <div className="bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-6 border border-indigo-300/50">
+            <div className="text-3xl font-bold text-indigo-700">{formatTime(displayRoom.minutesPerTurn * 60)}</div>
+            <div className="text-sm text-indigo-600 mt-2 font-medium">Time Left</div>
+          </div>
+          <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-6 border border-blue-300/50">
+            <div className="text-3xl font-bold text-blue-700">{displayRoom.minutesPerTurn}m</div>
+            <div className="text-sm text-blue-600 mt-2 font-medium">Per Turn</div>
+          </div>
+        </div>
+      </div>
 
       {/* Players */}
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">{displayRoom.player1?.name || 'Waiting...'}</div>
-                <div className="text-sm text-muted-foreground">Player 1</div>
+      <div className="grid grid-cols-2 gap-8 mb-8">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-purple-200/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-xl">
+                  {(displayRoom.player1?.name || 'P1').charAt(0)}
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                {displayRoom.currentTurn === 'player1' && displayRoom.status === 'active' && (
-                  <Badge variant="default">Your Turn</Badge>
-                )}
-                {displayRoom.player1?.isReady && (
-                  <Badge variant="outline">Ready</Badge>
-                )}
+              <div>
+                <div className="font-semibold text-gray-900 text-lg">
+                  {displayRoom.player1?.name || 'Waiting...'}
+                </div>
+                <div className="text-sm text-gray-700">Player 1</div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex items-center gap-3">
+              {displayRoom.currentTurn === 'player1' && displayRoom.status === 'active' && (
+                <Badge variant="default" className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl">Your Turn</Badge>
+              )}
+              {displayRoom.player1?.isReady && (
+                <Badge variant="outline" className="border-purple-300 text-purple-700 px-4 py-2 rounded-xl">Ready</Badge>
+              )}
+            </div>
+          </div>
+        </div>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">{displayRoom.player2?.name || 'Waiting...'}</div>
-                <div className="text-sm text-muted-foreground">Player 2</div>
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-purple-200/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-xl">
+                  {(displayRoom.player2?.name || 'P2').charAt(0)}
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                {displayRoom.currentTurn === 'player2' && displayRoom.status === 'active' && (
-                  <Badge variant="default">Your Turn</Badge>
-                )}
-                {displayRoom.player2?.isReady && (
-                  <Badge variant="outline">Ready</Badge>
-                )}
+              <div>
+                <div className="font-semibold text-gray-900 text-lg">
+                  {displayRoom.player2?.name || 'Waiting...'}
+                </div>
+                <div className="text-sm text-gray-700">Player 2</div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex items-center gap-3">
+              {displayRoom.currentTurn === 'player2' && displayRoom.status === 'active' && (
+                <Badge variant="default" className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl">Your Turn</Badge>
+              )}
+              {displayRoom.player2?.isReady && (
+                <Badge variant="outline" className="border-purple-300 text-purple-700 px-4 py-2 rounded-xl">Ready</Badge>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Debate Finished Message */}
       {simulationState === 'complete' && (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <h3 className="text-lg font-semibold mb-2">🎉 Debate Complete!</h3>
-            <p className="text-muted-foreground mb-4">
-              The debate has finished after {displayRoom.rounds} rounds. 
-              Thank you both for participating!
-            </p>
-            
-                         {result && (
-               <div className="mt-6 max-w-6xl mx-auto space-y-6">
-                 {/* Winner Card */}
-                 <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                   <div className="flex items-center justify-between">
-                     <div>
-                       <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Winner</div>
-                       <h2 className="text-xl font-semibold text-gray-900">
-                         {result.parsedAnalysis?.winner?.name || result.winnerName}
-                       </h2>
-                     </div>
-                     <div className="text-right">
-                       <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Score</div>
-                       <div className="text-lg font-semibold text-gray-900">
-                         {result.parsedAnalysis?.winner?.score || 'Analysis completed'}
-                       </div>
-                     </div>
-                   </div>
-                 </div>
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50 text-center">
+          <h3 className="text-xl font-semibold mb-3 text-gray-900">🎉 Debate Complete!</h3>
+          <p className="text-gray-700 mb-6">
+            The debate has finished after {displayRoom.rounds} rounds. 
+            Thank you both for participating!
+          </p>
+          
+          {result && (
+            <div className="mt-8 max-w-6xl mx-auto space-y-6">
+              {/* Winner Card */}
+              <div className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-2xl p-8 shadow-xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-medium text-purple-100 uppercase tracking-wide mb-2">Winner</div>
+                    <h2 className="text-2xl font-semibold">
+                      {result.parsedAnalysis?.winner?.name || result.winnerName}
+                    </h2>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs font-medium text-purple-100 uppercase tracking-wide mb-2">Score</div>
+                    <div className="text-xl font-semibold">
+                      {result.parsedAnalysis?.winner?.score || 'Analysis completed'}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-                 {/* Debate Summary */}
-                 {result.parsedAnalysis?.debateSummary && (
-                   <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                     <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Debate Summary</div>
-                     <p className="text-gray-900 leading-relaxed">{result.parsedAnalysis.debateSummary}</p>
-                   </div>
-                 )}
+              {/* Debate Summary */}
+              {result.parsedAnalysis?.debateSummary && (
+                <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                  <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-4">Debate Summary</div>
+                  <p className="text-gray-900 leading-relaxed">{result.parsedAnalysis.debateSummary}</p>
+                </div>
+              )}
 
-                 {/* Points of Contention */}
-                 {result.parsedAnalysis?.pointsOfContention && result.parsedAnalysis.pointsOfContention.length > 0 && (
-                   <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                     <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Points of Contention</div>
-                     <div className="space-y-2">
-                       {result.parsedAnalysis.pointsOfContention.map((contention, index) => (
-                         <div key={index} className="flex items-start gap-3">
-                           <div className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
-                           <p className="text-gray-700 leading-relaxed">{contention}</p>
-                         </div>
-                       ))}
-                     </div>
-                   </div>
-                 )}
+              {/* Points of Contention */}
+              {result.parsedAnalysis?.pointsOfContention && result.parsedAnalysis.pointsOfContention.length > 0 && (
+                <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                  <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-6">Points of Contention</div>
+                  <div className="space-y-4">
+                    {result.parsedAnalysis.pointsOfContention.map((contention, index) => (
+                      <div key={index} className="flex items-start gap-4">
+                        <div className="w-3 h-3 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full mt-2 flex-shrink-0"></div>
+                        <p className="text-gray-800 leading-relaxed">{contention}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-                 {/* Contention Analysis */}
-                 {result.parsedAnalysis?.contentionAnalysis && result.parsedAnalysis.contentionAnalysis.length > 0 && (
-                   <div className="space-y-6">
-                     {/* Main Contention Analysis Header */}
-                     <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                       <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Contention Analysis</div>
-                       <p className="text-sm text-gray-600 mt-2">Detailed breakdown of each major argument battleground</p>
-                     </div>
-                     
-                     {/* Individual Contention Cards Grid */}
-                     <div className="grid md:grid-cols-2 gap-4">
-                       {result.parsedAnalysis.contentionAnalysis.map((contention, index) => (
-                         <div key={index} className="bg-white border border-gray-200 p-5 rounded-lg">
-                           <div className="flex items-start gap-3 mb-4">
-                             <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                               {index + 1}
-                             </div>
-                             <div>
-                               <h4 className="font-medium text-gray-900 text-sm">{contention.title}</h4>
-                             </div>
-                           </div>
-                           
-                           <div className="space-y-3 text-sm">
-                             <div className="text-gray-700 leading-relaxed">
-                               <strong>Criteria:</strong> {contention.criteria}
-                             </div>
-                             <div className="text-gray-700 leading-relaxed">
-                               <strong>Marcus Chen (CEO):</strong> {contention.player1Analysis}
-                             </div>
-                             <div className="text-gray-700 leading-relaxed">
-                               <strong>Diana Rodriguez (CFO):</strong> {contention.player2Analysis}
-                             </div>
-                             <div className="text-gray-700 leading-relaxed">
-                               <strong>Outcome:</strong> {contention.outcome}
-                             </div>
-                           </div>
-                         </div>
-                       ))}
-                     </div>
-                   </div>
-                 )}
+              {/* Contention Analysis */}
+              {result.parsedAnalysis?.contentionAnalysis && result.parsedAnalysis.contentionAnalysis.length > 0 && (
+                <div className="space-y-6">
+                  <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                    <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">Contention Analysis</div>
+                    <p className="text-sm text-gray-700 mt-3">Detailed breakdown of each major argument battleground</p>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {result.parsedAnalysis.contentionAnalysis.map((contention, index) => (
+                      <div key={index} className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-6 shadow-xl">
+                        <div className="flex items-start gap-4 mb-6">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl flex items-center justify-center text-sm font-bold">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900 text-base">{contention.title}</h4>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4 text-sm">
+                          <div className="text-gray-800 leading-relaxed">
+                            <strong>Criteria:</strong> {contention.criteria}
+                          </div>
+                          <div className="text-gray-800 leading-relaxed">
+                            <strong>Marcus Chen (CEO):</strong> {contention.player1Analysis}
+                          </div>
+                          <div className="text-gray-800 leading-relaxed">
+                            <strong>Diana Rodriguez (CFO):</strong> {contention.player2Analysis}
+                          </div>
+                          <div className="text-gray-800 leading-relaxed">
+                            <strong>Outcome:</strong> {contention.outcome}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-                 {/* Holistic Verdict */}
-                 {result.parsedAnalysis?.holisticVerdict && (
-                   <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                     <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Holistic Verdict</div>
-                     <p className="text-gray-900 leading-relaxed">{result.parsedAnalysis.holisticVerdict}</p>
-                   </div>
-                 )}
+              {/* Holistic Verdict */}
+              {result.parsedAnalysis?.holisticVerdict && (
+                <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                  <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-4">Holistic Verdict</div>
+                  <p className="text-gray-900 leading-relaxed">{result.parsedAnalysis.holisticVerdict}</p>
+                </div>
+              )}
 
-                 {/* AI Insights & Recommendations */}
-                 <div className="grid md:grid-cols-2 gap-6">
-                   {/* AI Insights */}
-                   {result.parsedAnalysis?.aiInsights && result.parsedAnalysis.aiInsights.length > 0 && (
-                     <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                       <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">AI Insights</div>
-                       <div className="space-y-2">
-                         {result.parsedAnalysis.aiInsights.map((insight, index) => (
-                           <div key={index} className="flex items-start gap-3">
-                             <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                             <p className="text-sm text-gray-700 leading-relaxed">{insight}</p>
-                           </div>
-                         ))}
-                       </div>
-                     </div>
-                   )}
+              {/* AI Insights & Recommendations */}
+              <div className="grid md:grid-cols-2 gap-6">
+                {result.parsedAnalysis?.aiInsights && result.parsedAnalysis.aiInsights.length > 0 && (
+                  <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                    <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-6">AI Insights</div>
+                    <div className="space-y-4">
+                      {result.parsedAnalysis.aiInsights.map((insight, index) => (
+                        <div key={index} className="flex items-start gap-4">
+                          <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full mt-2 flex-shrink-0"></div>
+                          <p className="text-sm text-gray-800 leading-relaxed">{insight}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-                   {/* Next Steps */}
-                   {result.parsedAnalysis?.nextSteps && result.parsedAnalysis.nextSteps.length > 0 && (
-                     <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                       <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Next Steps</div>
-                       <div className="space-y-2">
-                         {result.parsedAnalysis.nextSteps.map((step, index) => (
-                           <div key={index} className="flex items-start gap-3">
-                             <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                             <p className="text-sm text-gray-700 leading-relaxed">{step}</p>
-                           </div>
-                         ))}
-                       </div>
-                     </div>
-                   )}
-                 </div>
-               </div>
-             )}
-          </CardContent>
-        </Card>
+                {result.parsedAnalysis?.nextSteps && result.parsedAnalysis.nextSteps.length > 0 && (
+                  <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                    <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-6">Next Steps</div>
+                    <div className="space-y-4">
+                      {result.parsedAnalysis.nextSteps.map((step, index) => (
+                        <div key={index} className="flex items-start gap-4">
+                          <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                          <p className="text-sm text-gray-800 leading-relaxed">{step}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Messages */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Debate Messages</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            {currentMessages.map((message) => (
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-purple-200/50">
+        <h3 className="text-xl font-semibold mb-6 text-gray-900">Debate Messages</h3>
+        <div className="space-y-4 max-h-96 overflow-y-auto">
+          {currentMessages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${
+                message.turn === 'player2' ? 'justify-end' : 'justify-start'
+              }`}
+            >
               <div
-                key={message.id}
-                className={`flex ${
-                  message.turn === 'player2' ? 'justify-end' : 'justify-start'
+                className={`max-w-xs lg:max-w-md px-6 py-4 rounded-2xl ${
+                  message.turn === 'player2'
+                    ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg'
+                    : 'bg-white/80 backdrop-blur-sm text-gray-900 border border-purple-200/50 shadow-lg'
                 }`}
               >
-                <div
-                  className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${
-                    message.turn === 'player2'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-foreground'
-                  }`}
-                >
-                  <div className="text-xs font-medium mb-1">
-                    {message.user.name} (Round {message.round})
-                  </div>
-                  <p className="text-sm">{message.content}</p>
+                <div className="text-xs font-medium mb-2">
+                  {message.user.name} (Round {message.round})
                 </div>
+                <p className="text-sm leading-relaxed">{message.content}</p>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
     </div>
   );
 } 

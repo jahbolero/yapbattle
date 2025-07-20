@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {  Play, Send, Copy, Check } from 'lucide-react';
 import type { DebateRoom, DebateMessage } from '@/types/debate';
@@ -69,8 +68,9 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
   const [isReady, setIsReady] = useState(false);
   const [copied, setCopied] = useState(false);
   const [playerRole, setPlayerRole] = useState<'player1' | 'player2' | 'spectator'>(initialPlayerRole);
-  const [winner, setWinner] = useState<{winner: string, summary: string, reasoning: string, winnerName: string, parsedAnalysis?: ParsedAnalysis} | null>(null);
+  const [winner, setWinner] = useState<{winner: string, summary: string, reasoning: string, winnerName: string, isTie?: boolean, parsedAnalysis?: ParsedAnalysis} | null>(null);
   const [analyzingWinner, setAnalyzingWinner] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
   // Store locked-in participant names that persist even if someone leaves
   const [lockedParticipants, setLockedParticipants] = useState<{
     player1Name?: string;
@@ -79,6 +79,7 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
   const [hasDebateStarted, setHasDebateStarted] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   const roomUrl = typeof window !== 'undefined' ? `${window.location.origin}/debate/room/${room.id}` : '';
@@ -506,403 +507,448 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Fake progress bar for AI analysis
+  useEffect(() => {
+    if (analyzingWinner) {
+      setAnalysisProgress(0);
+      const interval = setInterval(() => {
+        setAnalysisProgress(prev => {
+          if (prev >= 95) {
+            return prev; // Stop at 95% to never complete
+          }
+          // Start fast, then slow down
+          const remaining = 95 - prev;
+          const increment = Math.max(0.5, remaining * 0.02);
+          return Math.min(95, prev + increment);
+        });
+      }, 100);
+
+      return () => clearInterval(interval);
+    } else {
+      setAnalysisProgress(0);
+    }
+  }, [analyzingWinner]);
+
   return (
-    <div className="min-h-screen p-4 space-y-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 p-6">
       {/* Room Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle>{room.title}</CardTitle>
-              <p className="text-muted-foreground mt-1">{room.topic}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={
-                room.status === 'active' ? 'default' : 
-                room.status === 'finished' ? 'destructive' : 
-                'secondary'
-              }>
-                {room.status === 'finished' ? 'Debate Finished' : room.status}
-              </Badge>
-              <Button variant="outline" size="sm" onClick={copyRoomLink}>
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied ? 'Copied!' : 'Share'}
-              </Button>
-            </div>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-3">{room.title}</h1>
+            <p className="text-gray-700 text-lg">{room.topic}</p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold">{room.currentRound}/{room.rounds}</div>
-              <div className="text-sm text-muted-foreground">Round</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold">{formatTime(timeLeft)}</div>
-              <div className="text-sm text-muted-foreground">Time Left</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold">{room.minutesPerTurn}m</div>
-              <div className="text-sm text-muted-foreground">Per Turn</div>
-            </div>
+          <div className="flex items-center gap-4">
+            <Badge variant={
+              room.status === 'active' ? 'default' : 
+              room.status === 'finished' ? 'destructive' : 
+              'secondary'
+            } className="px-4 py-2 rounded-xl font-medium">
+              {room.status === 'finished' ? 'Debate Finished' : room.status}
+            </Badge>
+            <Button variant="outline" size="sm" onClick={copyRoomLink} className="rounded-xl border-purple-300 text-purple-700 hover:bg-purple-50 font-medium">
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? 'Copied!' : 'Share'}
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-6 mt-8 text-center">
+          <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-6 border border-purple-300/50">
+            <div className="text-3xl font-bold text-purple-700">{room.currentRound}/{room.rounds}</div>
+            <div className="text-sm text-purple-600 mt-2 font-medium">Round</div>
+          </div>
+          <div className="bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl p-6 border border-indigo-300/50">
+            <div className="text-3xl font-bold text-indigo-700">{formatTime(timeLeft)}</div>
+            <div className="text-sm text-indigo-600 mt-2 font-medium">Time Left</div>
+          </div>
+          <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-6 border border-blue-300/50">
+            <div className="text-3xl font-bold text-blue-700">{room.minutesPerTurn}m</div>
+            <div className="text-sm text-blue-600 mt-2 font-medium">Per Turn</div>
+          </div>
+        </div>
+      </div>
 
       {/* Players */}
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+      <div className="grid grid-cols-2 gap-8 mb-8">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-purple-200/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-xl">
+                  {(lockedParticipants.player1Name || room.player1?.name || 'P1').charAt(0)}
+                </span>
+              </div>
               <div>
-                <div className="font-medium">
+                <div className="font-semibold text-gray-900 text-lg">
                   {lockedParticipants.player1Name || room.player1?.name || 'Waiting...'}
                   {winner?.parsedAnalysis?.winner?.player === 'player1' && ' 👑'}
                 </div>
-                <div className="text-sm text-muted-foreground">Player 1</div>
-              </div>
-              <div className="flex items-center gap-2">
-                {room.currentTurn === 'player1' && room.status === 'active' && (
-                  <Badge variant="default">Your Turn</Badge>
-                )}
-                {!hasDebateStarted && room.player1?.isReady && (
-                  <Badge variant="outline">Ready</Badge>
-                )}
+                <div className="text-sm text-gray-700">Player 1</div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex items-center gap-3">
+              {room.currentTurn === 'player1' && room.status === 'active' && (
+                <Badge variant="default" className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl">Your Turn</Badge>
+              )}
+              {!hasDebateStarted && room.player1?.isReady && (
+                <Badge variant="outline" className="border-purple-300 text-purple-700 px-4 py-2 rounded-xl">Ready</Badge>
+              )}
+            </div>
+          </div>
+        </div>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-purple-200/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-xl">
+                  {(lockedParticipants.player2Name || room.player2?.name || 'P2').charAt(0)}
+                </span>
+              </div>
               <div>
-                <div className="font-medium">
+                <div className="font-semibold text-gray-900 text-lg">
                   {lockedParticipants.player2Name || room.player2?.name || 'Waiting...'}
                   {winner?.parsedAnalysis?.winner?.player === 'player2' && ' 👑'}
                 </div>
-                <div className="text-sm text-muted-foreground">Player 2</div>
-              </div>
-              <div className="flex items-center gap-2">
-                {room.currentTurn === 'player2' && room.status === 'active' && (
-                  <Badge variant="default">Your Turn</Badge>
-                )}
-                {!hasDebateStarted && room.player2?.isReady && (
-                  <Badge variant="outline">Ready</Badge>
-                )}
+                <div className="text-sm text-gray-700">Player 2</div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex items-center gap-3">
+              {room.currentTurn === 'player2' && room.status === 'active' && (
+                <Badge variant="default" className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl">Your Turn</Badge>
+              )}
+              {!hasDebateStarted && room.player2?.isReady && (
+                <Badge variant="outline" className="border-purple-300 text-purple-700 px-4 py-2 rounded-xl">Ready</Badge>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Controls */}
       {playerRole !== 'spectator' && room.status === 'waiting' && !hasDebateStarted && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex gap-2 justify-center">
-              <Button onClick={handleReady} variant={isReady ? 'default' : 'outline'}>
-                {isReady ? 'Ready!' : 'Ready Up'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50 text-center">
+          <h3 className="text-xl font-semibold mb-6 text-gray-900">Ready Up</h3>
+          <Button onClick={handleReady} variant={isReady ? 'default' : 'outline'} size="lg" className={isReady ? 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl h-14 text-lg font-medium shadow-lg transform transition-all duration-200 hover:scale-105' : 'border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl h-14 text-lg font-medium'}>
+            {isReady ? 'Ready!' : 'Ready Up'}
+          </Button>
+        </div>
       )}
 
       {/* Start Debate Button */}
       {playerRole === 'player1' && room.status === 'ready' && !hasDebateStarted && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex gap-2 justify-center">
-              <Button onClick={startDebate}>
-                <Play className="h-4 w-4 mr-2" />
-                Start Debate
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50 text-center">
+          <h3 className="text-xl font-semibold mb-6 text-gray-900">Start Debate</h3>
+          <Button onClick={startDebate} size="lg" className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl h-14 text-lg font-medium shadow-lg transform transition-all duration-200 hover:scale-105">
+            <Play className="h-5 w-5 mr-3" />
+            Start Debate
+          </Button>
+        </div>
       )}
 
-
-      {/* Winner Analysis - Show whenever we have winner data, regardless of room status */}
-      {winner && (
-        <Card>
-          <CardContent className="p-6 text-center">
-            {!room.status || room.status !== 'finished' ? (
-              <>
-                <h3 className="text-lg font-semibold mb-2">🏆 Analysis Complete!</h3>
-                <p className="text-muted-foreground mb-4">
-                  AI analysis has been completed for this debate.
-                </p>
-                <Button 
-                  onClick={analyzeWinner} 
-                  variant="outline"
-                  size="sm"
-                  disabled={analyzingWinner}
-                  className="mb-4"
-                >
-                  {analyzingWinner ? 'Re-analyzing...' : 'Re-analyze Debate'}
-                </Button>
-              </>
-            ) : (
-              <>
-                <h3 className="text-lg font-semibold mb-2">🎉 Debate Complete!</h3>
-                <p className="text-muted-foreground mb-4">
-                  The debate has finished after {room.rounds} rounds. 
-                  Thank you both for participating!
-                </p>
-                <Button 
-                  onClick={analyzeWinner} 
-                  variant="outline"
-                  size="sm"
-                  disabled={analyzingWinner}
-                  className="mb-4"
-                >
-                  {analyzingWinner ? 'Re-analyzing...' : 'Re-analyze Debate'}
-                </Button>
-              </>
-            )}
-            
-            {analyzingWinner && (
-              <div className="mt-4 p-4 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground">🤖 AI is analyzing the debate...</p>
-              </div>
-            )}
-            
-            {winner && (
-              <div className="mt-6 max-w-6xl mx-auto space-y-6">
-                {/* Winner Card */}
-                <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Winner</div>
-                      <h2 className="text-xl font-semibold text-gray-900">
-                        {winner.parsedAnalysis?.winner?.name || winner.winnerName}
-                      </h2>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Score</div>
-                      <div className="text-lg font-semibold text-gray-900">
-                        {winner.parsedAnalysis?.winner?.score || 'Analysis completed'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Debate Summary */}
-                {winner.parsedAnalysis?.debateSummary && (
-                  <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                    <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Debate Summary</div>
-                    <p className="text-gray-900 leading-relaxed">{winner.parsedAnalysis.debateSummary}</p>
-                  </div>
-                )}
-
-                {/* Points of Contention */}
-                {winner.parsedAnalysis?.pointsOfContention && winner.parsedAnalysis.pointsOfContention.length > 0 && (
-                  <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                    <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Points of Contention</div>
-                    <div className="space-y-2">
-                      {winner.parsedAnalysis.pointsOfContention.map((contention, index) => (
-                        <div key={index} className="flex items-start gap-3">
-                          <div className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
-                          <p className="text-gray-700 leading-relaxed">{contention}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Contention Analysis */}
-                {winner.parsedAnalysis?.contentionAnalysis && winner.parsedAnalysis.contentionAnalysis.length > 0 && (
-                  <div className="space-y-6">
-                    {/* Main Contention Analysis Header */}
-                    <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Contention Analysis</div>
-                      <p className="text-sm text-gray-600 mt-2">Detailed breakdown of each major argument battleground</p>
-                    </div>
-                    
-                    {/* Individual Contention Cards Grid */}
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {winner.parsedAnalysis.contentionAnalysis.map((contention, index) => (
-                        <div key={index} className="bg-white border border-gray-200 p-5 rounded-lg">
-                          <div className="flex items-start gap-3 mb-4">
-                            <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                              {index + 1}
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-gray-900 text-sm">{contention.title}</h4>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-3 text-sm">
-                            <div className="text-gray-700 leading-relaxed">
-                              <strong>Criteria:</strong> {contention.criteria}
-                            </div>
-                            <div className="text-gray-700 leading-relaxed">
-                              <strong>{lockedParticipants.player1Name || 'Player 1'}:</strong> {contention.player1Analysis}
-                            </div>
-                            <div className="text-gray-700 leading-relaxed">
-                              <strong>{lockedParticipants.player2Name || 'Player 2'}:</strong> {contention.player2Analysis}
-                            </div>
-                            <div className="text-gray-700 leading-relaxed">
-                              <strong>Outcome:</strong> {contention.outcome}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Holistic Verdict */}
-                {winner.parsedAnalysis?.holisticVerdict && (
-                  <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                    <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Holistic Verdict</div>
-                    <p className="text-gray-900 leading-relaxed">{winner.parsedAnalysis.holisticVerdict}</p>
-                  </div>
-                )}
-
-                {/* AI Insights & Recommendations */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* AI Insights */}
-                  {winner.parsedAnalysis?.aiInsights && winner.parsedAnalysis.aiInsights.length > 0 && (
-                    <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">AI Insights</div>
-                      <div className="space-y-2">
-                        {winner.parsedAnalysis.aiInsights.map((insight, index) => (
-                          <div key={index} className="flex items-start gap-3">
-                            <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                            <p className="text-sm text-gray-700 leading-relaxed">{insight}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Next Steps */}
-                  {winner.parsedAnalysis?.nextSteps && winner.parsedAnalysis.nextSteps.length > 0 && (
-                    <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Next Steps</div>
-                      <div className="space-y-2">
-                        {winner.parsedAnalysis.nextSteps.map((step, index) => (
-                          <div key={index} className="flex items-start gap-3">
-                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                            <p className="text-sm text-gray-700 leading-relaxed">{step}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Fallback for old format */}
-                {!winner.parsedAnalysis && (
-                  <div className="bg-white border border-gray-200 p-6 rounded-lg">
-                    <h4 className="font-semibold text-lg mb-3">🏆 Winner: {winner.winnerName}</h4>
-                    
-                    <div className="mb-3">
-                      <h5 className="font-medium text-sm mb-1">Summary:</h5>
-                      <p className="text-sm text-muted-foreground">{winner.summary}</p>
-                    </div>
-                    
-                    <div>
-                      <h5 className="font-medium text-sm mb-1">Reasoning:</h5>
-                      <p className="text-sm text-muted-foreground">{winner.reasoning}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Analyze Debate Button - Show when debate is active/finished but no analysis yet */}
+      {/* Analyze Debate Button */}
       {!winner && (room.status === 'active' || room.status === 'finished' || messages.length > 0) && (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <h3 className="text-lg font-semibold mb-2">🤖 AI Analysis</h3>
-            <p className="text-muted-foreground mb-4">
-              {room.status === 'finished' 
-                ? 'The debate has finished! Get AI analysis of the discussion.'
-                : 'Get AI analysis of the current debate progress.'
-              }
-            </p>
-            <Button 
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50 text-center">
+          <h3 className="text-xl font-semibold mb-3 text-gray-900">🤖 AI Analysis</h3>
+          <p className="text-gray-700 mb-6">
+            {room.status === 'finished' 
+              ? 'The debate has finished! Get AI analysis of the discussion.'
+              : 'Get AI analysis of the current debate progress.'
+            }
+          </p>
+                      <Button 
               onClick={analyzeWinner} 
               disabled={analyzingWinner}
-              className="mb-4"
+              className="mb-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl h-12 text-base font-medium shadow-lg transform transition-all duration-200 hover:scale-105"
             >
               {analyzingWinner ? 'Analyzing...' : 'Analyze Debate'}
             </Button>
             
             {analyzingWinner && (
-              <div className="mt-4 p-4 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground">🤖 AI is analyzing the debate...</p>
+              <div className="mt-6 p-6 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl border border-purple-300/50">
+                <p className="text-sm text-gray-700 mb-4">🤖 AI is analyzing the debate...</p>
+                <div className="w-full bg-white/50 rounded-full h-3 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-purple-500 to-indigo-600 transition-all duration-300 ease-out"
+                    style={{ width: `${analysisProgress}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-600 mt-2 text-center">
+                  {Math.round(analysisProgress)}% complete
+                </p>
               </div>
             )}
-          </CardContent>
-        </Card>
+        </div>
+      )}
+
+      {/* Winner Analysis */}
+      {winner && (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50 text-center">
+          {!room.status || room.status !== 'finished' ? (
+            <>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900">🏆 Analysis Complete!</h3>
+              <p className="text-gray-700 mb-6">
+                AI analysis has been completed for this debate.
+              </p>
+              <Button 
+                onClick={analyzeWinner} 
+                variant="outline"
+                size="sm"
+                disabled={analyzingWinner}
+                className="mb-4 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl font-medium"
+              >
+                {analyzingWinner ? 'Re-analyzing...' : 'Re-analyze Debate'}
+              </Button>
+            </>
+          ) : (
+            <>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900">🎉 Debate Complete!</h3>
+              <p className="text-gray-700 mb-6">
+                The debate has finished after {room.rounds} rounds. 
+                Thank you both for participating!
+              </p>
+              <Button 
+                onClick={analyzeWinner} 
+                variant="outline"
+                size="sm"
+                disabled={analyzingWinner}
+                className="mb-4 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl font-medium"
+              >
+                {analyzingWinner ? 'Re-analyzing...' : 'Re-analyze Debate'}
+              </Button>
+            </>
+          )}
+          
+          {analyzingWinner && (
+            <div className="mt-6 p-6 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl border border-purple-300/50">
+              <p className="text-sm text-gray-700 mb-4">🤖 AI is analyzing the debate...</p>
+              <div className="w-full bg-white/50 rounded-full h-3 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-purple-500 to-indigo-600 transition-all duration-300 ease-out"
+                  style={{ width: `${analysisProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-600 mt-2 text-center">
+                {Math.round(analysisProgress)}% complete
+              </p>
+            </div>
+          )}
+          
+          {winner && (
+            <div className="mt-8 max-w-6xl mx-auto space-y-6">
+              {/* Winner Card */}
+              <div className={`rounded-2xl p-8 shadow-xl ${
+                winner.isTie 
+                  ? 'bg-gradient-to-r from-yellow-500 to-orange-600 text-white' 
+                  : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-medium text-white/80 uppercase tracking-wide mb-2">
+                      {winner.isTie ? 'Result' : 'Winner'}
+                    </div>
+                    <h2 className="text-2xl font-semibold">
+                      {winner.isTie ? '🏆 Tie' : (winner.parsedAnalysis?.winner?.name || winner.winnerName)}
+                    </h2>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs font-medium text-white/80 uppercase tracking-wide mb-2">Score</div>
+                    <div className="text-xl font-semibold">
+                      {winner.parsedAnalysis?.winner?.score || 'Analysis completed'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Debate Summary */}
+              {winner.parsedAnalysis?.debateSummary && (
+                <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                  <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-4">Debate Summary</div>
+                  <p className="text-gray-900 leading-relaxed">{winner.parsedAnalysis.debateSummary}</p>
+                </div>
+              )}
+
+              {/* Points of Contention */}
+              {winner.parsedAnalysis?.pointsOfContention && winner.parsedAnalysis.pointsOfContention.length > 0 && (
+                <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                  <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-6">Points of Contention</div>
+                  <div className="space-y-4">
+                    {winner.parsedAnalysis.pointsOfContention.map((contention, index) => (
+                      <div key={index} className="flex items-start gap-4">
+                        <div className="w-3 h-3 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full mt-2 flex-shrink-0"></div>
+                        <p className="text-gray-800 leading-relaxed">{contention}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Contention Analysis */}
+              {winner.parsedAnalysis?.contentionAnalysis && winner.parsedAnalysis.contentionAnalysis.length > 0 && (
+                <div className="space-y-6">
+                  <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                    <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">Contention Analysis</div>
+                    <p className="text-sm text-gray-700 mt-3">Detailed breakdown of each major argument battleground</p>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {winner.parsedAnalysis.contentionAnalysis.map((contention, index) => (
+                      <div key={index} className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-6 shadow-xl">
+                        <div className="flex items-start gap-4 mb-6">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl flex items-center justify-center text-sm font-bold">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900 text-base">{contention.title}</h4>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4 text-sm">
+                          <div className="text-gray-800 leading-relaxed">
+                            <strong>Criteria:</strong> {contention.criteria}
+                          </div>
+                          <div className="text-gray-800 leading-relaxed">
+                            <strong>{lockedParticipants.player1Name || 'Player 1'}:</strong> {contention.player1Analysis}
+                          </div>
+                          <div className="text-gray-800 leading-relaxed">
+                            <strong>{lockedParticipants.player2Name || 'Player 2'}:</strong> {contention.player2Analysis}
+                          </div>
+                          <div className="text-gray-800 leading-relaxed">
+                            <strong>Outcome:</strong> {contention.outcome}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Holistic Verdict */}
+              {winner.parsedAnalysis?.holisticVerdict && (
+                <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                  <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-4">Holistic Verdict</div>
+                  <p className="text-gray-900 leading-relaxed">{winner.parsedAnalysis.holisticVerdict}</p>
+                </div>
+              )}
+
+              {/* AI Insights & Recommendations */}
+              <div className="grid md:grid-cols-2 gap-6">
+                {winner.parsedAnalysis?.aiInsights && winner.parsedAnalysis.aiInsights.length > 0 && (
+                  <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                    <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-6">AI Insights</div>
+                    <div className="space-y-4">
+                      {winner.parsedAnalysis.aiInsights.map((insight, index) => (
+                        <div key={index} className="flex items-start gap-4">
+                          <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full mt-2 flex-shrink-0"></div>
+                          <p className="text-sm text-gray-800 leading-relaxed">{insight}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {winner.parsedAnalysis?.nextSteps && winner.parsedAnalysis.nextSteps.length > 0 && (
+                  <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                    <div className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-6">Next Steps</div>
+                    <div className="space-y-4">
+                      {winner.parsedAnalysis.nextSteps.map((step, index) => (
+                        <div key={index} className="flex items-start gap-4">
+                          <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                          <p className="text-sm text-gray-800 leading-relaxed">{step}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Fallback for old format */}
+              {!winner.parsedAnalysis && (
+                <div className="bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-2xl p-8 shadow-xl">
+                  <h4 className="font-semibold text-xl mb-6 text-gray-900">🏆 Winner: {winner.winnerName}</h4>
+                  
+                  <div className="mb-6">
+                    <h5 className="font-medium text-base mb-3 text-gray-900">Summary:</h5>
+                    <p className="text-sm text-gray-700 leading-relaxed">{winner.summary}</p>
+                  </div>
+                  
+                  <div>
+                    <h5 className="font-medium text-base mb-3 text-gray-900">Reasoning:</h5>
+                    <p className="text-sm text-gray-700 leading-relaxed">{winner.reasoning}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Messages */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Debate Messages</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            {messages.map((message) => (
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-purple-200/50">
+        <h3 className="text-xl font-semibold mb-6 text-gray-900">Debate Messages</h3>
+        <div className="space-y-4 max-h-96 overflow-y-auto">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${
+                message.user.name === currentUser.name ? 'justify-end' : 'justify-start'
+              }`}
+            >
               <div
-                key={message.id}
-                className={`flex ${
-                  message.user.name === currentUser.name ? 'justify-end' : 'justify-start'
+                className={`max-w-xs lg:max-w-md px-6 py-4 rounded-2xl ${
+                  message.user.name === currentUser.name
+                    ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg'
+                    : 'bg-white/80 backdrop-blur-sm text-gray-900 border border-purple-200/50 shadow-lg'
                 }`}
               >
-                <div
-                  className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${
-                    message.user.name === currentUser.name
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-foreground'
-                  }`}
-                >
-                  <div className="text-xs font-medium mb-1">
-                    {message.user.name} (Round {message.round})
-                  </div>
-                  <p className="text-sm">{message.content}</p>
+                <div className="text-xs font-medium mb-2">
+                  {message.user.name} (Round {message.round})
                 </div>
+                <p className="text-sm leading-relaxed">{message.content}</p>
               </div>
-            ))}
-          </div>
-
-          {/* Message Input */}
-          {canSendMessage() && (
-            <form onSubmit={sendMessage} className="flex gap-2 mt-4">
-              <Input
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Your argument..."
-                className="flex-1"
-              />
-              <Button type="submit" disabled={!newMessage.trim()}>
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
-          )}
-
-          {/* Skip Turn Button - shown when it's player's turn but they can't send (timer expired, etc.) */}
-          {canSkipTurn() && !canSendMessage() && (
-            <div className="mt-4 text-center">
-              <p className="text-sm text-muted-foreground mb-2">
-                Time is up! You can skip your turn or wait for the system to auto-skip.
-              </p>
-              <Button variant="outline" onClick={skipTurn}>
-                Skip Turn
-              </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Message Input */}
+        {canSendMessage() && (
+          <form onSubmit={sendMessage} className="flex gap-4 mt-8">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Your argument..."
+              className="flex-1 rounded-xl border-purple-300 !bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
+            />
+            <Button type="submit" disabled={!newMessage.trim()} className="rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-lg transform transition-all duration-200 hover:scale-105">
+              <Send className="h-5 w-5" />
+            </Button>
+          </form>
+        )}
+
+        {/* Skip Turn Button */}
+        {canSkipTurn() && !canSendMessage() && (
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-700 mb-4">
+              Time is up! You can skip your turn or wait for the system to auto-skip.
+            </p>
+            <Button variant="outline" onClick={skipTurn} className="rounded-xl border-purple-300 text-purple-700 hover:bg-purple-50 font-medium">
+              Skip Turn
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
