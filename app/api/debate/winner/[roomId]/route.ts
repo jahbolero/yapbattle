@@ -3,10 +3,10 @@ import { DebateDatabase } from '@/lib/database';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { roomId: string } }
+  { params }: { params: Promise<{ roomId: string }> }
 ) {
   try {
-    const { roomId } = params;
+    const { roomId } = await params;
     console.log('Fetching winner analysis for room:', roomId);
 
     const db = new DebateDatabase();
