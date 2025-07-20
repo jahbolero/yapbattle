@@ -121,6 +121,17 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     channel
       .on('broadcast', { event: 'room-update' }, ({ payload }) => {
         const updatedRoom = payload as DebateRoom;
+        
+        // Preserve local ready state when receiving room updates
+        const currentRoom = room;
+        if (playerRole === 'player1' && currentRoom.player1?.isReady !== updatedRoom.player1?.isReady) {
+          // Only update if the ready state actually changed
+          setIsReady(updatedRoom.player1?.isReady || false);
+        } else if (playerRole === 'player2' && currentRoom.player2?.isReady !== updatedRoom.player2?.isReady) {
+          // Only update if the ready state actually changed
+          setIsReady(updatedRoom.player2?.isReady || false);
+        }
+        
         setRoom(updatedRoom);
         onRoomUpdate(updatedRoom);
         
@@ -370,14 +381,21 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     const newReadyState = !isReady;
     setIsReady(newReadyState);
 
-    const updatedRoom = { ...room };
+    // Create a new room object, being careful to preserve existing player states
+    const updatedRoom = { 
+      ...room,
+      player1: room.player1 ? { ...room.player1 } : undefined,
+      player2: room.player2 ? { ...room.player2 } : undefined
+    };
+    
+    // Only update the current player's ready state
     if (playerRole === 'player1' && updatedRoom.player1) {
       updatedRoom.player1.isReady = newReadyState;
     } else if (playerRole === 'player2' && updatedRoom.player2) {
       updatedRoom.player2.isReady = newReadyState;
     }
 
-    // Check if both players exist and are ready (works even if one player isn't joined yet)
+    // Check if both players exist and are ready
     const bothPlayersExist = updatedRoom.player1 && updatedRoom.player2;
     const bothPlayersReady = updatedRoom.player1?.isReady && updatedRoom.player2?.isReady;
     
