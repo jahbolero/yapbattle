@@ -1,51 +1,248 @@
-import { DeployButton } from "@/components/deploy-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
-import { Hero } from "@/components/hero";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { ConnectSupabaseSteps } from "@/components/tutorial/connect-supabase-steps";
-import { SignUpUserSteps } from "@/components/tutorial/sign-up-user-steps";
-import { hasEnvVars } from "@/lib/utils";
-import Link from "next/link";
+'use client';
 
-export default function Home() {
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { InfoIcon, MessageSquare, Plus, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+export default function LandingPage() {
+  const router = useRouter();
+  const [playerName, setPlayerName] = useState('');
+  const [showNameInput, setShowNameInput] = useState(false);
+  const [action, setAction] = useState<'create' | 'join' | null>(null);
+  const [roomCode, setRoomCode] = useState('');
+  const [showRoomInput, setShowRoomInput] = useState(false);
+
+  const handleAction = (actionType: 'create' | 'join') => {
+    if (!playerName.trim()) {
+      setAction(actionType);
+      setShowNameInput(true);
+      return;
+    }
+    
+    // Store player name in localStorage
+    localStorage.setItem('playerName', playerName);
+    
+    if (actionType === 'create') {
+      router.push('/debate/create');
+    } else {
+      setShowRoomInput(true);
+    }
+  };
+
+  const handleRoomJoin = () => {
+    if (roomCode.trim()) {
+      // Extract room ID from URL or use the code directly
+      let roomId = roomCode.trim();
+      
+      // If it's a full URL, extract the room ID
+      if (roomCode.includes('/debate/room/')) {
+        roomId = roomCode.split('/debate/room/')[1];
+      }
+      
+      router.push(`/debate/room/${roomId}`);
+    }
+  };
+
+  const handleNameSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (playerName.trim()) {
+      localStorage.setItem('playerName', playerName);
+      setShowNameInput(false);
+      
+      if (action === 'create') {
+        router.push('/debate/create');
+      } else if (action === 'join') {
+        // For join, you can implement room code input later
+        alert('Join feature coming soon!');
+      }
+    }
+  };
+
   return (
-    <main className="min-h-screen flex flex-col items-center">
-      <div className="flex-1 w-full flex flex-col gap-20 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-            <div className="flex gap-5 items-center font-semibold">
-              <Link href={"/"}>Next.js Supabase Starter</Link>
-              <div className="flex items-center gap-2">
-                <DeployButton />
-              </div>
-            </div>
-            {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
-          </div>
-        </nav>
-        <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
-          <Hero />
-          <main className="flex-1 flex flex-col gap-6 px-4">
-            <h2 className="font-medium text-xl mb-4">Next steps</h2>
-            {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
-          </main>
+    <div className="min-h-screen flex flex-col">
+      {/* Header */}
+      <div className="w-full p-6">
+        <div className="bg-accent text-sm p-3 px-5 rounded-md text-foreground flex gap-3 items-center">
+          <InfoIcon size="16" strokeWidth={2} />
+          Welcome to YapFight - Create or join debate rooms
         </div>
-
-        <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-          <p>
-            Powered by{" "}
-            <a
-              href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-              target="_blank"
-              className="font-bold hover:underline"
-              rel="noreferrer"
-            >
-              Supabase
-            </a>
-          </p>
-          <ThemeSwitcher />
-        </footer>
       </div>
-    </main>
+
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-4xl">
+          {/* Hero Section */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold mb-4">YapFight</h1>
+            <p className="text-xl text-muted-foreground mb-8">
+              Engage in structured debates with AI-powered analysis
+            </p>
+          </div>
+
+          {/* Name Input Modal */}
+          {showNameInput && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <Card className="w-full max-w-md mx-4">
+                <CardHeader>
+                  <CardTitle>Enter Your Name</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleNameSubmit} className="space-y-4">
+                    <div>
+                      <Label htmlFor="playerName">Your Name</Label>
+                      <Input
+                        id="playerName"
+                        value={playerName}
+                        onChange={(e) => setPlayerName(e.target.value)}
+                        placeholder="Enter your name"
+                        required
+                        autoFocus
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button type="submit" className="flex-1">
+                        Continue
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => {
+                          setShowNameInput(false);
+                          setAction(null);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Room Input Modal */}
+          {showRoomInput && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <Card className="w-full max-w-md mx-4">
+                <CardHeader>
+                  <CardTitle>Join Debate Room</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={(e) => { e.preventDefault(); handleRoomJoin(); }} className="space-y-4">
+                    <div>
+                      <Label htmlFor="roomCode">Room Code or URL</Label>
+                      <Input
+                        id="roomCode"
+                        value={roomCode}
+                        onChange={(e) => setRoomCode(e.target.value)}
+                        placeholder="Enter room code or paste room URL"
+                        required
+                        autoFocus
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button type="submit" className="flex-1">
+                        Join Room
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => {
+                          setShowRoomInput(false);
+                          setRoomCode('');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Main Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Plus className="h-5 w-5" />
+                  Create Debate Room
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Start a new debate with custom rules and invite opponents
+                </p>
+                <Button 
+                  className="w-full" 
+                  onClick={() => handleAction('create')}
+                >
+                  Create New Room
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Join Existing Room
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Use a room link to join an ongoing or scheduled debate
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={() => handleAction('join')}
+                >
+                  Enter Room Code
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Features Section */}
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardContent className="p-6 text-center">
+                <Users className="h-8 w-8 mx-auto mb-3 text-primary" />
+                <h3 className="font-semibold mb-2">Real-time Debates</h3>
+                <p className="text-sm text-muted-foreground">
+                  Engage in live debates with turn-based messaging
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6 text-center">
+                <MessageSquare className="h-8 w-8 mx-auto mb-3 text-primary" />
+                <h3 className="font-semibold mb-2">AI Analysis</h3>
+                <p className="text-sm text-muted-foreground">
+                  Get detailed analysis of arguments and winner determination
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6 text-center">
+                <InfoIcon className="h-8 w-8 mx-auto mb-3 text-primary" />
+                <h3 className="font-semibold mb-2">Structured Format</h3>
+                <p className="text-sm text-muted-foreground">
+                  Follow debate rules with timed turns and structured arguments
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
   );
-}
+} 

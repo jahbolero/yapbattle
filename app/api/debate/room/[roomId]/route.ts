@@ -1,76 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { roomStore } from '@/lib/room-store';
 
-export async function GET(
+export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ roomId: string }> }
 ) {
   try {
-    const supabase = await createClient();
     const { roomId } = await params;
+    const { playerName } = await request.json();
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!playerName) {
+      return NextResponse.json({ error: 'Player name required' }, { status: 400 });
     }
 
     // Get room from store or create default
-    let room = roomStore.get(roomId);
+    const room = roomStore?.get(roomId);
     
     if (!room) {
-      // Check if this is the room creator by checking the roomId pattern
-      const isCreator = roomId.includes(user.id);
-      
-      // If room doesn't exist and user isn't the creator, return error
-      if (!isCreator) {
-        return NextResponse.json({ error: 'Room not found' }, { status: 404 });
-      }
-
-      room = {
-        id: roomId,
-        title: 'Debate Room',
-        topic: 'General Discussion',
-        rounds: 3,
-        minutesPerTurn: 2,
-        currentRound: 1,
-        currentTurn: null,
-        status: 'waiting',
-        createdAt: new Date().toISOString(),
-      };
-
-      if (isCreator) {
-        room.player1 = {
-          id: user.id,
-          name: user.email?.split('@')[0] || 'Player 1',
-          isReady: false,
-          joinedAt: new Date().toISOString(),
-        };
-      }
-
-      roomStore.set(roomId, room);
+      return NextResponse.json({ error: 'Room not found' }, { status: 404 });
     }
 
     // Determine player role
     let playerRole = 'spectator';
     let roomUpdated = false;
     
-    if (room.player1?.id === user.id) {
+    // Check if player is already in the room
+    if (room.player1?.name === playerName) {
       playerRole = 'player1';
-    } else if (room.player2?.id === user.id) {
+    } else if (room.player2?.name === playerName) {
       playerRole = 'player2';
     } else if (!room.player2) {
       // Join as player2
       room.player2 = {
-        id: user.id,
-        name: user.email?.split('@')[0] || 'Player 2',
+        id: `player-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        name: playerName,
         isReady: false,
         joinedAt: new Date().toISOString(),
       };
       playerRole = 'player2';
       roomUpdated = true;
-      roomStore.set(roomId, room);
+      if (roomStore) {
+        roomStore.set(roomId, room);
+      }
+    } else {
+      // Room is full, join as spectator
+      playerRole = 'spectator';
     }
 
     return NextResponse.json({
@@ -94,18 +68,13 @@ export async function PUT(
   { params }: { params: Promise<{ roomId: string }> }
 ) {
   try {
-    const supabase = await createClient();
     const { roomId } = await params;
     const updatedRoom = await request.json();
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     // Update room in store
-    roomStore.set(roomId, updatedRoom);
+    if (roomStore) {
+      roomStore.set(roomId, updatedRoom);
+    }
 
     return NextResponse.json({
       success: true,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,12 +11,23 @@ import { Clock, Users, MessageSquare } from 'lucide-react';
 export default function CreateDebatePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [playerName, setPlayerName] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     topic: '',
     rounds: 3,
     minutesPerTurn: 2,
   });
+
+  useEffect(() => {
+    // Get player name from localStorage
+    const storedName = localStorage.getItem('playerName');
+    if (!storedName) {
+      router.push('/');
+      return;
+    }
+    setPlayerName(storedName);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +37,10 @@ export default function CreateDebatePage() {
       const response = await fetch('/api/debate/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          playerName, // Include player name in the request
+        }),
       });
 
       const data = await response.json();
@@ -41,6 +55,11 @@ export default function CreateDebatePage() {
     }
   };
 
+  // Don't render if player name is not set
+  if (!playerName) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -49,6 +68,9 @@ export default function CreateDebatePage() {
             <MessageSquare className="h-6 w-6" />
             Create Debate Room
           </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Creating as: <span className="font-medium">{playerName}</span>
+          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

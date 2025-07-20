@@ -223,11 +223,11 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
   }, [room]);
 
   const initializeRoom = () => {
-    // Determine if user is player1, player2, or spectator
-    if (room.player1?.id === currentUser.id) {
+    // Determine if user is player1, player2, or spectator based on name
+    if (room.player1?.name === currentUser.name) {
       setPlayerRole('player1');
       setIsReady(room.player1?.isReady || false);
-    } else if (room.player2?.id === currentUser.id) {
+    } else if (room.player2?.name === currentUser.name) {
       setPlayerRole('player2');
       setIsReady(room.player2?.isReady || false);
     } else {
@@ -388,7 +388,7 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       createdAt: new Date().toISOString(),
       user: {
         id: currentUser.id,
-        name: currentUser.email?.split('@')[0] || 'Player',
+        name: currentUser.name || 'Player',
       },
       room: room.id,
       round: room.currentRound,
@@ -551,7 +551,10 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <div className="font-medium">{lockedParticipants.player1Name || room.player1?.name || 'Waiting...'}</div>
+                <div className="font-medium">
+                  {lockedParticipants.player1Name || room.player1?.name || 'Waiting...'}
+                  {winner?.parsedAnalysis?.winner?.player === 'player1' && ' 👑'}
+                </div>
                 <div className="text-sm text-muted-foreground">Player 1</div>
               </div>
               <div className="flex items-center gap-2">
@@ -570,7 +573,10 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <div className="font-medium">{lockedParticipants.player2Name || room.player2?.name || 'Waiting...'}</div>
+                <div className="font-medium">
+                  {lockedParticipants.player2Name || room.player2?.name || 'Waiting...'}
+                  {winner?.parsedAnalysis?.winner?.player === 'player2' && ' 👑'}
+                </div>
                 <div className="text-sm text-muted-foreground">Player 2</div>
               </div>
               <div className="flex items-center gap-2">
@@ -587,21 +593,27 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       </div>
 
       {/* Controls */}
-      {playerRole !== 'spectator' && !hasDebateStarted && (
+      {playerRole !== 'spectator' && room.status === 'waiting' && !hasDebateStarted && (
         <Card>
           <CardContent className="p-4">
             <div className="flex gap-2 justify-center">
-              {room.status === 'waiting' && (
-                <Button onClick={handleReady} variant={isReady ? 'default' : 'outline'}>
-                  {isReady ? 'Ready!' : 'Ready Up'}
-                </Button>
-              )}
-              {room.status === 'ready' && playerRole === 'player1' && (
-                <Button onClick={startDebate}>
-                  <Play className="h-4 w-4 mr-2" />
-                  Start Debate
-                </Button>
-              )}
+              <Button onClick={handleReady} variant={isReady ? 'default' : 'outline'}>
+                {isReady ? 'Ready!' : 'Ready Up'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Start Debate Button */}
+      {playerRole === 'player1' && room.status === 'ready' && !hasDebateStarted && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex gap-2 justify-center">
+              <Button onClick={startDebate}>
+                <Play className="h-4 w-4 mr-2" />
+                Start Debate
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -839,12 +851,12 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
               <div
                 key={message.id}
                 className={`flex ${
-                  message.user.id === currentUser.id ? 'justify-end' : 'justify-start'
+                  message.user.name === currentUser.name ? 'justify-end' : 'justify-start'
                 }`}
               >
                 <div
                   className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${
-                    message.user.id === currentUser.id
+                    message.user.name === currentUser.name
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-foreground'
                   }`}
