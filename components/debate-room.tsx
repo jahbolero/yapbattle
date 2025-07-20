@@ -817,6 +817,34 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
         </Card>
       )}
 
+      {/* Analyze Debate Button - Show when debate is active/finished but no analysis yet */}
+      {!winner && (room.status === 'active' || room.status === 'finished' || messages.length > 0) && (
+        <Card>
+          <CardContent className="p-6 text-center">
+            <h3 className="text-lg font-semibold mb-2">🤖 AI Analysis</h3>
+            <p className="text-muted-foreground mb-4">
+              {room.status === 'finished' 
+                ? 'The debate has finished! Get AI analysis of the discussion.'
+                : 'Get AI analysis of the current debate progress.'
+              }
+            </p>
+            <Button 
+              onClick={analyzeWinner} 
+              disabled={analyzingWinner}
+              className="mb-4"
+            >
+              {analyzingWinner ? 'Analyzing...' : 'Analyze Debate'}
+            </Button>
+            
+            {analyzingWinner && (
+              <div className="mt-4 p-4 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">🤖 AI is analyzing the debate...</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Messages */}
       <Card>
         <CardHeader>
