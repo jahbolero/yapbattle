@@ -81,14 +81,14 @@ Summarize the key points and overall flow of the debate in detail, tracing how a
 Identify 4-6 main points of contention (battlegrounds where arguments clash deeply, e.g., timing, costs, ethics, assumptions, implications), ensuring they capture both explicit clashes and subtle divergences.
 For each contention, establish 3-5 tailored criteria adapted to the topic (e.g., logical coherence, evidence use and quality, rebuttal effectiveness and specificity, relevance and depth, feasibility and practicality, persuasiveness and nuance-handling).
 Analyze per contention: Extract and cite exact key arguments/rebuttals from each side across all rounds; evaluate strengths (e.g., data-backed with specifics, anticipates and preempts counters, addresses nuances) and weaknesses (e.g., unsupported claims, ignored objections, fallacies like ad hominem or strawman, oversimplifications); explain interactions in depth (how one side's point directly relates to, undermines, or fails to engage the other's, including evolution over rounds); justify who "won" that contention based on criteria, with nuanced reasoning on why specific elements tip the scale.
-Score each participant out of 10 overall (weighted average of criteria like Logical Coherence, Evidence Use, Relevance, Counterarguments, Feasibility, Persuasiveness), and provide per-contention mini-scores (e.g., 7/10 for player1 on this battleground) with breakdowns.
+Score each participant out of 10 overall (weighted average of criteria like Logical Coherence, Evidence Use, Relevance, Counterarguments, Feasibility, Persuasiveness), and provide per-contention mini-scores (e.g., 7/10 for ${room.player1} on this battleground) with breakdowns.
 Compare holistically: Weigh contentions by importance (e.g., core to topic > peripheral; assign explicit weights like 40% for central issues); factor in overall debate dynamics like consistency, adaptability, and engagement; declare a tie only if performances are truly indistinguishable after granular review.
 Remain neutral: Base on substantive content only—no favoritism to style, rhetoric, or superficial elements; highlight any unaddressed nuances fairly.
-Provide AI-unique insights: Use semantic analysis to flag patterns like fallacy frequency, evidence density, sentiment shifts, argument evolution, or rhetorical strategies; quantify where possible (e.g., "Player1 used 3 fallacies vs. Player2's 1").
+Provide AI-unique insights: Use semantic analysis to flag patterns like fallacy frequency, evidence density, sentiment shifts, argument evolution, or rhetorical strategies; quantify where possible (e.g., "${room.player1} used 3 fallacies vs. ${room.player2}'s 1").
 Explain thought process transparently throughout to substantiate the verdict, reduce dissatisfaction, and build trust—treat this as a detailed judicial opinion.
 When explaining whether an argument was strong or weak, cite the exact argument verbatim from the transcript, dissect its components (e.g., premise, evidence, conclusion), and explain why it succeeds/fails in context, including any nuances like contextual relevance or round-specific adaptations. Similar to how a judge would explain their decision in a court case with granular detail.
 When referring to clashing arguments between the two players, cite exact quotes from both, explain why one was stronger or weaker (e.g., better evidence, more direct rebuttal, handling of nuances), how it was countered (or not), and any ripple effects on the debate flow.
-THERE SHOULD ABSOLUTELY BE NO BIAS VS PLAYER 1 OR PLAYER 2. THEY WILL BE ASSESSED FAIRLY, REGARDLESS WHO PLAYER 1 OR 2 IS. 
+THERE SHOULD ABSOLUTELY BE NO BIAS VS ${room.player1} OR ${room.player2}. THEY WILL BE ASSESSED FAIRLY, REGARDLESS WHO THEY ARE. 
 Should it be absolutely necessary, declare a tie.
 
 CRITICAL INSTRUCTIONS:
@@ -145,7 +145,7 @@ Return your analysis as a JSON object with exactly this structure:
 "criteria": "Assessed on [3-5 specific criteria for this contention, e.g., logical coherence, evidence quality, rebuttal specificity]",
 "player1Analysis": "${room.player1} presented [detailed analysis with verbatim cites, strengths/weaknesses dissection, nuances; 150-250 words for depth]",
 "player2Analysis": "${room.player2} countered with [detailed analysis with verbatim cites, strengths/weaknesses dissection, nuances; 150-250 words for depth]",
-"outcome": "[Who won this contention and why, with granular reasoning citing exact arguments, interactions, and criteria application; include mini-scores like Player1: 8/10, Player2: 6/10; 100-150 words]",
+"outcome": "[Who won this contention and why, with granular reasoning citing exact arguments, interactions, and criteria application; include mini-scores like ${room.player1}: 8/10, ${room.player2}: 6/10; 100-150 words]",
 "miniScores": {
 "player1": X,
 "player2": X
@@ -154,13 +154,13 @@ Return your analysis as a JSON object with exactly this structure:
 ],
 "holisticVerdict": "[400-500 word detailed summary explaining the overall winner: weigh contentions with explicit percentages (e.g., Contention 1: 30% weight), discuss interplay, unaddressed nuances, overall dynamics; transparent thought process on why the scales tip, ensuring satisfaction through depth]",
 "aiInsights": [
-"Insight 1: [e.g., Semantic analysis shows Player1's evidence density at 40% higher; flag specific fallacies with cites]",
+"Insight 1: [e.g., Semantic analysis shows ${room.player1}'s evidence density at 40% higher; flag specific fallacies with cites]",
 "Insight 2: [e.g., Pattern of sentiment shifts from assertive to defensive in Round 2]",
 "Insight 3: [Additional unique analysis]"
 ],
 "nextSteps": [
-"Specific actionable advice for Player1: [e.g., Strengthen rebuttals by addressing X nuance]",
-"Specific actionable advice for Player2: [e.g., Bolster evidence with more verifiable cites]",
+"Specific actionable advice for ${room.player1}: [e.g., Strengthen rebuttals by addressing X nuance]",
+"Specific actionable advice for ${room.player2}: [e.g., Bolster evidence with more verifiable cites]",
 "General recommendations for future debates: [e.g., Focus on round-to-round adaptation]"
 ]
 }`;

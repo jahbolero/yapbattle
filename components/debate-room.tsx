@@ -401,7 +401,7 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     const newReadyState = !isReady;
     setIsReady(newReadyState);
 
-    // Create a new room object, being careful to preserve existing player states
+    // Create a new room object, being careful to preserve ALL existing room data
     const updatedRoom = { 
       ...room,
       player1: room.player1 ? { ...room.player1 } : undefined,
@@ -419,9 +419,15 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     const bothPlayersExist = updatedRoom.player1 && updatedRoom.player2;
     const bothPlayersReady = updatedRoom.player1?.isReady && updatedRoom.player2?.isReady;
     
-    // Don't change status if debate is already finished
-    if (room.status === 'finished') {
-      updatedRoom.status = 'finished';
+    // Don't change status if debate is already finished or has started
+    if (room.status === 'finished' || room.status === 'active' || room.startedAt) {
+      // Preserve the existing status and all timestamps
+      updatedRoom.status = room.status;
+      updatedRoom.startedAt = room.startedAt;
+      updatedRoom.finishedAt = room.finishedAt;
+      updatedRoom.turnStartedAt = room.turnStartedAt;
+      updatedRoom.currentRound = room.currentRound;
+      updatedRoom.currentTurn = room.currentTurn;
     } else if (bothPlayersExist && bothPlayersReady) {
       updatedRoom.status = 'ready';
     } else if (bothPlayersExist) {
@@ -477,20 +483,22 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
 
     setNewMessage('');
 
-    // Broadcast message immediately for instant feedback
-    channelRef.current?.send({
-      type: 'broadcast',
-      event: 'message',
-      payload: message,
-    });
-
-    // Save message to API in background
+    // Save message to API first
     try {
-      await fetch(`/api/debate/messages/${room.id}`, {
+      const response = await fetch(`/api/debate/messages/${room.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(message),
       });
+      
+      if (response.ok) {
+        // Only broadcast after successful API save
+        channelRef.current?.send({
+          type: 'broadcast',
+          event: 'message',
+          payload: message,
+        });
+      }
     } catch (error) {
       console.error('Error saving message:', error);
     }
