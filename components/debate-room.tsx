@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Users, Play, Send, Copy, Check } from 'lucide-react';
-import type { DebateRoom, DebatePlayer, DebateMessage } from '@/types/debate';
+import {  Play, Send, Copy, Check } from 'lucide-react';
+import type { DebateRoom, DebateMessage } from '@/types/debate';
 
 interface ParsedAnalysis {
   winner: {
@@ -889,7 +889,7 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
           {canSkipTurn() && !canSendMessage() && (
             <div className="mt-4 text-center">
               <p className="text-sm text-muted-foreground mb-2">
-                Time's up! You can skip your turn or wait for the system to auto-skip.
+                Time is up! You can skip your turn or wait for the system to auto-skip.
               </p>
               <Button variant="outline" onClick={skipTurn}>
                 Skip Turn
