@@ -87,11 +87,22 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
   const roomUrl = typeof window !== 'undefined' ? `${window.location.origin}/debate/room/${room.id}` : '';
 
   useEffect(() => {
-    // Check for saved winner
-    const savedWinner = localStorage.getItem(`winner-${room.id}`);
-    if (savedWinner) {
-      setWinner(JSON.parse(savedWinner));
-    }
+    // Check for saved winner from database
+    const loadWinnerAnalysis = async () => {
+      try {
+        const response = await fetch(`/api/debate/winner/${room.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setWinner(data);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading winner analysis:', error);
+      }
+    };
+    
+    loadWinnerAnalysis();
     
     // Check if debate has started (active, finished, or has messages)
     const debateStarted = initialRoom.status === 'active' || initialRoom.status === 'finished' || !!initialRoom.startedAt;
@@ -144,12 +155,6 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
           });
         }
         
-        // Preserve winner data when room updates - don't let room changes clear the analysis
-        const savedWinner = localStorage.getItem(`winner-${room.id}`);
-        if (savedWinner && !winner) {
-          setWinner(JSON.parse(savedWinner));
-        }
-        
         // Don't auto-trigger analysis anymore
       })
       .on('broadcast', { event: 'message' }, ({ payload }) => {
@@ -168,7 +173,6 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       })
       .on('broadcast', { event: 'winner-result' }, ({ payload }) => {
         setWinner(payload);
-        localStorage.setItem(`winner-${room.id}`, JSON.stringify(payload));
       })
       .subscribe();
 
@@ -410,7 +414,10 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     const bothPlayersExist = updatedRoom.player1 && updatedRoom.player2;
     const bothPlayersReady = updatedRoom.player1?.isReady && updatedRoom.player2?.isReady;
     
-    if (bothPlayersExist && bothPlayersReady) {
+    // Don't change status if debate is already finished
+    if (room.status === 'finished') {
+      updatedRoom.status = 'finished';
+    } else if (bothPlayersExist && bothPlayersReady) {
       updatedRoom.status = 'ready';
     } else if (bothPlayersExist) {
       updatedRoom.status = 'waiting';
@@ -533,9 +540,6 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       const data = await response.json();
       if (data.success) {
         setWinner(data);
-        
-        // Save to localStorage
-        localStorage.setItem(`winner-${room.id}`, JSON.stringify(data));
         
         // Broadcast winner result to all players
         channelRef.current?.send({
