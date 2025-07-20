@@ -673,7 +673,7 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       )}
 
       {/* Start Debate Button */}
-      {playerRole === 'player1' && room.status === 'ready' && !hasDebateStarted && (
+      {playerRole === 'player1' && !hasDebateStarted && room.player1 && room.player2 && room.player1.isReady && room.player2.isReady && (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50 text-center">
           <h3 className="text-xl font-semibold mb-6 text-gray-900">Start Debate</h3>
           <Button onClick={startDebate} size="lg" className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl h-14 text-lg font-medium shadow-lg transform transition-all duration-200 hover:scale-105">
