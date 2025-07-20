@@ -745,42 +745,22 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       )}
 
       {/* Winner Analysis */}
-      {winner && (
+      {winner && room.status === 'finished' && (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-xl border border-purple-200/50 text-center">
-          {!room.status || room.status !== 'finished' ? (
-            <>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900">🏆 Analysis Complete!</h3>
-              <p className="text-gray-700 mb-6">
-                AI analysis has been completed for this debate.
-              </p>
-              <Button 
-                onClick={analyzeWinner} 
-                variant="outline"
-                size="sm"
-                disabled={analyzingWinner}
-                className="mb-4 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl font-medium"
-              >
-                {analyzingWinner ? 'Re-analyzing...' : 'Re-analyze Debate'}
-              </Button>
-            </>
-          ) : (
-            <>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900">🎉 Debate Complete!</h3>
-              <p className="text-gray-700 mb-6">
-                The debate has finished after {room.rounds} rounds. 
-                Thank you both for participating!
-              </p>
-              <Button 
-                onClick={analyzeWinner} 
-                variant="outline"
-                size="sm"
-                disabled={analyzingWinner}
-                className="mb-4 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl font-medium"
-              >
-                {analyzingWinner ? 'Re-analyzing...' : 'Re-analyze Debate'}
-              </Button>
-            </>
-          )}
+          <h3 className="text-xl font-semibold mb-3 text-gray-900">🎉 Debate Complete!</h3>
+          <p className="text-gray-700 mb-6">
+            The debate has finished after {room.rounds} rounds. 
+            Thank you both for participating!
+          </p>
+          <Button 
+            onClick={analyzeWinner} 
+            variant="outline"
+            size="sm"
+            disabled={analyzingWinner}
+            className="mb-4 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl font-medium"
+          >
+            {analyzingWinner ? 'Re-analyzing...' : 'Re-analyze Debate'}
+          </Button>
           
           {analyzingWinner && (
             <div className="mt-6 p-6 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl border border-purple-300/50">
