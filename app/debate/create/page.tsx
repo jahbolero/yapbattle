@@ -101,6 +101,7 @@ export default function CreateDebatePage() {
                 placeholder="e.g., Climate Change Debate"
                 required
                 className="rounded-xl border-purple-300 !bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
+                disabled={loading}
               />
             </div>
 
@@ -113,6 +114,7 @@ export default function CreateDebatePage() {
                 placeholder="What are you debating about?"
                 required
                 className="rounded-xl border-purple-300 !bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
+                disabled={loading}
               />
             </div>
 
@@ -131,6 +133,7 @@ export default function CreateDebatePage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, rounds: parseInt(e.target.value) }))}
                   required
                   className="rounded-xl border-purple-300 !bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
+                  disabled={loading}
                 />
               </div>
 
@@ -148,6 +151,7 @@ export default function CreateDebatePage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, minutesPerTurn: parseInt(e.target.value) }))}
                   required
                   className="rounded-xl border-purple-300 !bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -161,6 +165,14 @@ export default function CreateDebatePage() {
                 {loading ? 'Creating Room...' : 'Create Debate Room'}
               </Button>
             </div>
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10 rounded-2xl">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                  <span className="text-purple-700 font-medium">Creating room, redirecting...</span>
+                </div>
+              </div>
+            )}
           </form>
         </div>
 

@@ -83,6 +83,7 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+  const [isSending, setIsSending] = useState(false);
 
   const roomUrl = typeof window !== 'undefined' ? `${window.location.origin}/debate/room/${room.id}` : '';
 
@@ -441,7 +442,7 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       updatedRoom.status = room.status;
     }
       setRoom(updatedRoom);
-      broadcastRoomUpdate(updatedRoom, true); // Immediate broadcast for ready state changes
+      broadcastRoomUpdate(updatedRoom, true); // Immediate broadcast for ready state changesgit
   };
 
   const startDebate = () => {
@@ -466,11 +467,13 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !canSendMessage()) return;
-
+    if (!newMessage.trim() || !canSendMessage() || isSending) return;
+    setIsSending(true);
     // Only player1 and player2 can send messages
-    if (playerRole !== 'player1' && playerRole !== 'player2') return;
-
+    if (playerRole !== 'player1' && playerRole !== 'player2') {
+      setIsSending(false);
+      return;
+    }
     const message: DebateMessage = {
       id: `${Date.now()}-${Math.random()}`,
       content: newMessage.trim(),
@@ -483,19 +486,14 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       round: room.currentRound,
       turn: playerRole as 'player1' | 'player2',
     };
-
     setNewMessage('');
-
-    // Save message to API first
     try {
       const response = await fetch(`/api/debate/messages/${room.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(message),
       });
-      
       if (response.ok) {
-        // Only broadcast after successful API save
         channelRef.current?.send({
           type: 'broadcast',
           event: 'message',
@@ -504,9 +502,9 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
       }
     } catch (error) {
       console.error('Error saving message:', error);
+    } finally {
+      setIsSending(false);
     }
-
-    // Switch turn after sending
     setTimeout(() => switchTurn(), 1000);
   };
 
@@ -1008,8 +1006,9 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Your argument..."
                 className="flex-1 rounded-xl border-purple-300 !bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
+                disabled={isSending}
               />
-              <Button type="submit" disabled={!newMessage.trim()} className="rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-lg transform transition-all duration-200 hover:scale-105">
+              <Button type="submit" disabled={!newMessage.trim() || isSending} className="rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-lg transform transition-all duration-200 hover:scale-105">
                 <Send className="h-5 w-5" />
               </Button>
             </form>
