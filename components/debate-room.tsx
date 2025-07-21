@@ -85,6 +85,16 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
   const supabase = createClient();
   const [isSending, setIsSending] = useState(false);
 
+  // Add refs for latest state
+  const latestRoomRef = useRef(room);
+  const latestPlayerRoleRef = useRef(playerRole);
+  const latestIsReadyRef = useRef(isReady);
+
+  // Keep refs in sync with state
+  useEffect(() => { latestRoomRef.current = room; }, [room]);
+  useEffect(() => { latestPlayerRoleRef.current = playerRole; }, [playerRole]);
+  useEffect(() => { latestIsReadyRef.current = isReady; }, [isReady]);
+
   const roomUrl = typeof window !== 'undefined' ? `${window.location.origin}/debate/room/${room.id}` : '';
 
   useEffect(() => {
@@ -123,8 +133,8 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     // Load existing messages
     loadMessages();
     
-    // Set up realtime connection
-    const channel = supabase.channel(`debate-${room.id}`, {
+    // Set up realtime connection only once
+    const channel = supabase.channel(`debate-${initialRoom.id}`, {
       config: { broadcast: { self: true } },
     });
 
@@ -133,21 +143,16 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     channel
       .on('broadcast', { event: 'room-update' }, ({ payload }) => {
         const updatedRoom = payload as DebateRoom;
-        
-        // Preserve local ready state when receiving room updates
-        const currentRoom = room;
-        if (playerRole === 'player1' && currentRoom.player1?.isReady !== updatedRoom.player1?.isReady) {
-          // Only update if the ready state actually changed
+        const currentRoom = latestRoomRef.current;
+        const currentPlayerRole = latestPlayerRoleRef.current;
+        if (currentPlayerRole === 'player1' && currentRoom.player1?.isReady !== updatedRoom.player1?.isReady) {
           setIsReady(updatedRoom.player1?.isReady || false);
-        } else if (playerRole === 'player2' && currentRoom.player2?.isReady !== updatedRoom.player2?.isReady) {
-          // Only update if the ready state actually changed
+        } else if (currentPlayerRole === 'player2' && currentRoom.player2?.isReady !== updatedRoom.player2?.isReady) {
           setIsReady(updatedRoom.player2?.isReady || false);
         }
-        
         setRoom(updatedRoom);
         onRoomUpdate(updatedRoom);
-        
-        // Lock in participant names once debate starts
+        initializeRoom();
         if ((updatedRoom.status === 'active' || updatedRoom.status === 'finished' || updatedRoom.startedAt) && !hasDebateStarted) {
           setHasDebateStarted(true);
           setLockedParticipants({
@@ -155,13 +160,9 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
             player2Name: updatedRoom.player2?.name
           });
         }
-        
-        // Also maintain hasDebateStarted if debate has already started but status changed
         if (hasDebateStarted && (updatedRoom.status === 'active' || updatedRoom.status === 'finished' || updatedRoom.startedAt)) {
           setHasDebateStarted(true);
         }
-        
-        // Don't auto-trigger analysis anymore
       })
       .on('broadcast', { event: 'message' }, ({ payload }) => {
         const message = payload as DebateMessage;
