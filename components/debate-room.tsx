@@ -65,7 +65,6 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
   const [messages, setMessages] = useState<DebateMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
-  const [isReady, setIsReady] = useState(false);
   const [copied, setCopied] = useState(false);
   const [playerRole, setPlayerRole] = useState<'player1' | 'player2' | 'spectator'>(initialPlayerRole);
   const [winner, setWinner] = useState<{winner: string, summary: string, reasoning: string, winnerName: string, isTie?: boolean, parsedAnalysis?: ParsedAnalysis} | null>(null);
@@ -88,12 +87,12 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
   // Add refs for latest state
   const latestRoomRef = useRef(room);
   const latestPlayerRoleRef = useRef(playerRole);
-  const latestIsReadyRef = useRef(isReady);
+  const latestIsReadyRef = useRef(false); // This ref is no longer needed for the button state
 
   // Keep refs in sync with state
   useEffect(() => { latestRoomRef.current = room; }, [room]);
   useEffect(() => { latestPlayerRoleRef.current = playerRole; }, [playerRole]);
-  useEffect(() => { latestIsReadyRef.current = isReady; }, [isReady]);
+  useEffect(() => { latestIsReadyRef.current = false; }, []); // This useEffect is no longer needed
 
   const roomUrl = typeof window !== 'undefined' ? `${window.location.origin}/debate/room/${room.id}` : '';
 
@@ -146,9 +145,9 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
         const currentRoom = latestRoomRef.current;
         const currentPlayerRole = latestPlayerRoleRef.current;
         if (currentPlayerRole === 'player1' && currentRoom.player1?.isReady !== updatedRoom.player1?.isReady) {
-          setIsReady(updatedRoom.player1?.isReady || false);
+          // setIsReady(updatedRoom.player1?.isReady || false); // This line is removed
         } else if (currentPlayerRole === 'player2' && currentRoom.player2?.isReady !== updatedRoom.player2?.isReady) {
-          setIsReady(updatedRoom.player2?.isReady || false);
+          // setIsReady(updatedRoom.player2?.isReady || false); // This line is removed
         }
         setRoom(updatedRoom);
         onRoomUpdate(updatedRoom);
@@ -284,10 +283,10 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     // Determine if user is player1, player2, or spectator based on name
     if (room.player1?.name === currentUser.name) {
       setPlayerRole('player1');
-      setIsReady(room.player1?.isReady || false);
+      // setIsReady(room.player1?.isReady || false); // This line is removed
     } else if (room.player2?.name === currentUser.name) {
       setPlayerRole('player2');
-      setIsReady(room.player2?.isReady || false);
+      // setIsReady(room.player2?.isReady || false); // This line is removed
     } else {
       setPlayerRole('spectator');
     }
@@ -405,23 +404,20 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
   };
 
   const handleReady = () => {
-    const newReadyState = !isReady;
-    setIsReady(newReadyState);
-
+    // Use the current value from the room object
+    const newReadyState = !myReady;
     // Create a new room object, being careful to preserve ALL existing room data
     const updatedRoom = { 
       ...room,
       player1: room.player1 ? { ...room.player1 } : undefined,
       player2: room.player2 ? { ...room.player2 } : undefined
     };
-    
     // Only update the current player's ready state
     if (playerRole === 'player1' && updatedRoom.player1) {
       updatedRoom.player1.isReady = newReadyState;
     } else if (playerRole === 'player2' && updatedRoom.player2) {
       updatedRoom.player2.isReady = newReadyState;
     }
-
     // Check if both players exist and are ready
     const bothPlayersExist = updatedRoom.player1 && updatedRoom.player2;
     const bothPlayersReady = updatedRoom.player1?.isReady && updatedRoom.player2?.isReady;
@@ -621,6 +617,12 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
     }
   }, [analyzingWinner]);
 
+  const myReady = playerRole === 'player1'
+    ? room.player1?.isReady
+    : playerRole === 'player2'
+      ? room.player2?.isReady
+      : false;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 p-6">
       {/* Room Header */}
@@ -710,12 +712,12 @@ export function DebateRoomComponent({ room: initialRoom, currentUser, playerRole
           <Button 
             onClick={handleReady} 
             size="lg" 
-            className={isReady 
+            className={myReady 
               ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl h-14 text-lg font-medium shadow-lg transform transition-all duration-200 hover:scale-105' 
               : 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl h-14 text-lg font-medium shadow-lg transform transition-all duration-200 hover:scale-105'
             }
           >
-            {isReady ? 'Ready!' : 'Ready Up'}
+            {myReady ? 'Ready!' : 'Ready Up'}
           </Button>
         </div>
       )}
